@@ -5,11 +5,11 @@ Current phase: Phase 0 (setup + load-bearing smoke tests).
 ## Phases
 
 - [x] **Phase 0** Repo setup, SPEC, agent_notes scaffolding
-- [ ] **Phase 0.5** Marksman smoke test against vault (LOAD-BEARING; if marksman fails, architecture changes)
+- [x] **Phase 0.5** Marksman smoke test — REVEALED CRASH; architecture pivot below
 - [ ] **Phase 1** Project skeleton (TS, esbuild, vitest, lint, pre-commit)
 - [ ] **Phase 2** Wikilink preview rendering (TDD)
 - [ ] **Phase 3** Syntax highlighting (TextMate injection)
-- [ ] **Phase 4** Marksman LSP client wiring
+- [ ] **Phase 4** ~~Marksman LSP client~~ In-extension WorkspaceIndex (file walker, wikilink parser, resolver, backlinks index, file watcher)
 - [ ] **Phase 5** vs CLI bridge: commands + hover provider (TDD)
 - [ ] **Phase 6** Daily notes command
 - [ ] **Phase 7** Copilot context booster (preview-tab preloader + instructions.md)
@@ -27,7 +27,8 @@ Current phase: Phase 0 (setup + load-bearing smoke tests).
 
 ## Decision log
 
-- **2026-05-23** Architecture: marksman LSP + thin extension. Not a Foam fork. Reason: marksman is MIT, battle-tested for Obsidian-style wikilinks, already provides backlinks/hover/completions. Forking Foam would mean maintaining ~10k LOC of TS that re-implements what marksman does in Rust.
+- **2026-05-23 (morning)** Architecture: marksman LSP + thin extension. Not a Foam fork.
+- **2026-05-23 (afternoon, REVISED)** Pivoted: in-extension WorkspaceIndex + providers. Reason: marksman crashes (SIGSEGV) on the real vault even after ignore-tuning. See friction.md. The features marksman gives us (definition, backlinks via find-references, completion, hover) are tractable to implement in 300-500 LOC TypeScript against a workspace file index. We lose marksman's `[[X#header]]` anchor resolution and code-action richness, but the vault sample showed anchor links are rare (~5 cases across 4800 files).
 - **2026-05-23** Bundling: do NOT bundle Markdown All in One / Prettier / markdownlint. Recommend in README. Reason: bundling = feature creep + version-pinning headaches.
 - **2026-05-23** Distribution: personal-first via `vsce package` + manual install. Marketplace deferred 2+ weeks.
 

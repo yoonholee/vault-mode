@@ -25,56 +25,56 @@ A VSCode extension that gives a vault editor inside VSCode the Obsidian-essentia
 
 ## Architecture
 
-External LSP backend + thin TypeScript extension.
+Self-contained TypeScript extension. No external LSP. (Original plan was marksman LSP; pivoted after marksman crashed on the real vault; see agent_notes/friction.md.)
 
 ```
-┌─────────────────────────────────────────────┐
-│            VSCode (TypeScript)               │
-│                                              │
-│  ┌──────────────┐   ┌────────────────────┐   │
-│  │  Commands    │   │  Providers         │   │
-│  │  - vs.search │   │  - hover           │   │
-│  │  - vs.insert │   │  - markdown-it     │   │
-│  │  - daily     │   │  - inline-context  │   │
-│  └──────┬───────┘   └────────┬───────────┘   │
-│         │                    │               │
-│  ┌──────▼────────────────────▼────────────┐  │
-│  │  Services                              │  │
-│  │  - VsClient (spawn vs CLI)             │  │
-│  │  - WikilinkParser (extract refs)       │  │
-│  │  - NeighborPreloader (preview tabs)    │  │
-│  │  - PerfLogger (every hot path)         │  │
-│  └────────────────────────────────────────┘  │
-│         │                                    │
-└─────────┼────────────────────────────────────┘
-          │  LSP (stdio)
-┌─────────▼──────────────────────────────────┐
-│  marksman (Rust, external)                  │
-│  - wikilink parsing / resolution            │
-│  - completions, hover, find-references,     │
-│    go-to-def, diagnostics, rename           │
-└─────────────────────────────────────────────┘
+┌────────────────────────────────────────────────┐
+│            VSCode (TypeScript)                  │
+│                                                 │
+│  ┌──────────────┐   ┌────────────────────┐      │
+│  │  Commands    │   │  Providers          │     │
+│  │  - vs.search │   │  - definition       │     │
+│  │  - vs.insert │   │  - hover            │     │
+│  │  - daily     │   │  - completion       │     │
+│  └──────┬───────┘   │  - references       │     │
+│         │           │  - markdown-it      │     │
+│         │           │  - inline-context   │     │
+│         │           └────────┬────────────┘     │
+│  ┌──────▼────────────────────▼─────────────┐    │
+│  │  Services                                │   │
+│  │  - WorkspaceIndex (file walker + watch) │    │
+│  │  - WikilinkParser (extract refs)        │    │
+│  │  - Resolver (stem -> file)              │    │
+│  │  - BacklinksIndex (target -> sources)   │    │
+│  │  - VsClient (spawn vs CLI)              │    │
+│  │  - NeighborPreloader (preview tabs)     │    │
+│  │  - PerfLogger (every hot path)          │    │
+│  └─────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────┘
 ```
 
 ## Components and responsibilities
 
 | Component | Source | Notes |
 |---|---|---|
-| Marksman LSP | external binary | Brew-installed. Started on extension activation via vscode-languageclient. Owns all wikilink intelligence. |
-| Preview renderer | `markdown-it-*` plugin | Registered via `markdown.markdownItPlugins` contribution. Renders `[[X]]`, `[[X\|alias]]`, `[[X#header]]`, `![[X]]`. |
+| WorkspaceIndex | TS service | Walks vault `.md` files (honoring `.ignore` / `.gitignore`), builds stem→path map, watches for changes. Drives definition / completion / backlinks. |
+| WikilinkParser | TS (pure fn) | Parses `[[X]]`, `[[X\|alias]]`, `[[X#header]]`, `![[X]]` out of a markdown buffer. Code-fence aware. |
+| Resolver | TS (pure fn) | Given a wikilink target stem + workspace index, returns the resolved file path (file-stem matching). Handles ambiguity via shortest-path-then-first-alphabetical. |
+| BacklinksIndex | TS service | target stem → list of source files containing wikilinks to it. Built incrementally on parse. |
+| Preview renderer | markdown-it plugin (own) | Registered via `markdown.markdownItPlugins`. Renders `[[X]]`, `[[X\|alias]]`, `[[X#header]]`. Uses Resolver to get target URL. |
 | Syntax injection | TextMate grammar JSON | Injects into `text.html.markdown` so wikilinks get distinct token scope and color. |
-| VsClient | TS service | Wraps `vs` CLI: timeout, stderr capture, JSON-line parsing where possible. |
-| Commands | TS | `obsidianLight.semanticSearch`, `.insertWikilink`, `.relatedNotes`, `.openDailyNote`, `.openRandomNote`. |
-| HoverProvider | TS | On hover over a `[[wikilink]]`, augment marksman's hover with top-3 `vs` semantic neighbors of the target. |
+| VsClient | TS service | Wraps `vs` CLI: timeout, stderr capture, parses `--paths-only` output. |
+| Providers | TS | `DefinitionProvider`, `HoverProvider`, `CompletionProvider`, `ReferenceProvider` (backlinks) wired to the index. `HoverProvider` augments with top-3 `vs` neighbors. |
+| Commands | TS | `obsidianLight.semanticSearch`, `.insertWikilink`, `.relatedNotes`, `.openDailyNote`, `.openRandomNote`, `.regenerateCopilotInstructions`. |
 | NeighborPreloader | TS | On active editor change in markdown: extract wikilinks, open each target as a preview tab so Copilot reads their content. Configurable. |
-| CopilotInstructionsGen | TS one-shot command | Generate `.github/copilot-instructions.md` from vault structure + `CLAUDE.md`. |
+| CopilotInstructionsGen | TS command | Generate `.github/copilot-instructions.md` from vault structure + `CLAUDE.md`. |
 
 ## Performance targets
 
 | Operation | Target | How measured |
 |---|---|---|
 | Extension activation (cold) | < 100 ms | `performance.now()` at extension entry/exit, logged to outputChannel |
-| Marksman cold start to first response | < 500 ms | LSP `initialized` callback time |
+| WorkspaceIndex cold build, 3000 .md files | < 2000 ms | timer around walker + parse |
 | Markdown preview render, 100 wikilinks | < 50 ms | bench script using `markdown-it.render()` |
 | Hover provider response | < 300 ms p95 | wrap provider, log per-call duration |
 | `vs` cold call | not extension's fault (~1-2s) | spinner shown |
