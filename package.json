@@ -2,7 +2,7 @@
   "name": "obsidian-light",
   "displayName": "Obsidian Light",
   "description": "Wikilinks, backlinks, and semantic-search bridge for Obsidian-style vaults in VSCode.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "license": "MIT",
   "publisher": "yoonholee",
@@ -55,8 +55,8 @@
         },
         "obsidianLight.copilotBooster.enabled": {
           "type": "boolean",
-          "default": true,
-          "description": "On opening a markdown file, silently open its wikilink neighbors as preview tabs so Copilot reads them."
+          "default": false,
+          "description": "EXPERIMENTAL: silently load wikilink neighbors of the active file into workspace.textDocuments so Copilot has them as context. Off by default; unclear whether Copilot's inline-completion heuristic actually reads silent-loaded documents. Use workspace.openTextDocument under the hood (no UI changes)."
         },
         "obsidianLight.copilotBooster.maxNeighbors": {
           "type": "number",

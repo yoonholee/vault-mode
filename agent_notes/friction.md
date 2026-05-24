@@ -2,6 +2,16 @@
 
 Format per entry: what tried, what happened, workaround, suggested fix.
 
+## 2026-05-23 — Copilot booster jumped focus around the editor
+
+**Tried:** Open wikilink neighbors as `preview: true` tabs in `ViewColumn.Beside` with `preserveFocus: true`, then refocus the original editor.
+
+**What happened:** Visible "switching around" on every active-editor change. `preserveFocus` only preserves keyboard focus; the editor pane still flashed across columns as each neighbor loaded and then again as we refocused. Distracting in normal use.
+
+**Root cause:** Wrong API. `showTextDocument` mutates the UI. We wanted "load into context, no UI change." The right call is `workspace.openTextDocument(uri)` — silent load, document goes into `workspace.textDocuments`, no tab, no focus.
+
+**Workaround:** v0.1.1 switches to silent `openTextDocument`, dedupes per active file per session, and flips default to OFF. Unverified whether Copilot's inline-completion heuristic reads silently-loaded documents vs only `window.tabGroups`. If it's the latter, the feature is fundamentally a no-op and we should remove it; if the former, it's free context. Need real A/B before deciding.
+
 ## 2026-05-23 — marksman SIGSEGV on real vault
 
 **Tried:** Use marksman LSP as wikilink backend for the extension. Smoke test against ~/repos/vault (~4815 .md files including Archive content).

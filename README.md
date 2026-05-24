@@ -11,7 +11,7 @@ Originally meant to be a thin wrapper over the marksman LSP. Marksman crashes (S
 - **Definition / hover / completion / references.** Ctrl-click a `[[Wikilink]]` to jump. Hover for a preview. Type `[[` for completion. "Find all references" shows backlinks.
 - **`vs` bridge.** `Vault: Semantic Search`, `Vault: Insert Wikilink`, `Vault: Show Related Notes`. Hover popups also augment with the top-3 `vs` neighbors of the target.
 - **Daily notes.** `Vault: Open Today's Daily Note` creates `Daily/YYYY-MM-DD.md` from a configurable template.
-- **Copilot context booster.** On opening a markdown file, opens its wikilink neighbors as preview tabs so Copilot reads them. Toggle in settings.
+- **Copilot context booster (EXPERIMENTAL, off by default).** Silently loads wikilink neighbors into VSCode's document cache so Copilot has them as context. Uses `workspace.openTextDocument` under the hood — no UI changes, no tab switching, no focus loss. Unverified whether Copilot's inline-completion heuristic actually reads silent-loaded documents; enable and A/B-test if curious.
 - **Copilot instructions generator.** `Vault: Regenerate Copilot Instructions` writes `.github/copilot-instructions.md` from your vault structure + `CLAUDE.md`.
 
 ## Install
@@ -40,7 +40,7 @@ Recommended sidecar extensions (not bundled):
 | `obsidianLight.vsTimeoutMs` | `5000` | Hard timeout for any `vs` invocation |
 | `obsidianLight.dailyNotesFolder` | `Daily` | Folder under vault root for daily notes |
 | `obsidianLight.dailyNoteTemplate` | `# {date}\n\n` | Template (placeholders: `{date}`, `{iso}`, `{weekday}`) |
-| `obsidianLight.copilotBooster.enabled` | `true` | Preload wikilink neighbors as preview tabs |
+| `obsidianLight.copilotBooster.enabled` | `false` | EXPERIMENTAL: silent neighbor load |
 | `obsidianLight.copilotBooster.maxNeighbors` | `5` | Max neighbors per active file |
 | `obsidianLight.copilotBooster.depth` | `1` | Traversal depth (reserved; only depth=1 implemented in v0) |
 | `obsidianLight.hover.augmentWithVs` | `true` | Append vs neighbors to wikilink hover |

@@ -1,5 +1,14 @@
-// Listens for active-editor changes. When the user opens a markdown file,
-// opens its wikilink neighbors as preview tabs so Copilot reads them.
+// Loads wikilink neighbors of the active markdown file into VSCode's document
+// cache (workspace.textDocuments) so they're available as context.
+//
+// Uses workspace.openTextDocument (silent, no tab, no focus change) rather
+// than showTextDocument. Whether this actually feeds Copilot's inline-
+// completion context is UNVERIFIED — Copilot's neighboring-tabs heuristic
+// may key off window.tabGroups instead. This feature is opt-in (default off)
+// until we measure benefit. See SPEC.md open questions.
+//
+// Dedupe: a file's neighbors are only preloaded once per extension session
+// per active file. Switching between two known files does no work.
 
 import * as vscode from "vscode";
 import type { WorkspaceIndex } from "./workspaceIndex";
@@ -14,6 +23,7 @@ export interface NeighborPreloaderOptions {
 export class NeighborPreloader implements vscode.Disposable {
   private disposable: vscode.Disposable;
   private opts: NeighborPreloaderOptions;
+  private preloadedFor = new Set<string>();
 
   constructor(
     private index: WorkspaceIndex,
@@ -22,12 +32,22 @@ export class NeighborPreloader implements vscode.Disposable {
   ) {
     this.opts = opts;
     this.disposable = vscode.window.onDidChangeActiveTextEditor((ed) => {
-      if (ed) this.maybePreload(ed);
+      if (ed) {
+        // Fire-and-forget; never await on a UI event handler
+        void this.maybePreload(ed);
+      }
     });
   }
 
   setOptions(opts: NeighborPreloaderOptions) {
     this.opts = opts;
+    // If user just disabled, no need to clear cache; if enabled, start fresh
+    // so a manual command re-runs.
+  }
+
+  /** Forget the dedupe set; the next preload for any file will rerun. */
+  resetCache(): void {
+    this.preloadedFor.clear();
   }
 
   async maybePreload(editor: vscode.TextEditor) {
@@ -35,8 +55,11 @@ export class NeighborPreloader implements vscode.Disposable {
     if (editor.document.languageId !== "markdown") return;
     if (editor.document.uri.scheme !== "file") return;
 
-    const t0 = performance.now();
     const activeFile = editor.document.uri.fsPath;
+    if (this.preloadedFor.has(activeFile)) return;
+    this.preloadedFor.add(activeFile);
+
+    const t0 = performance.now();
     const outgoing = this.index.outgoingLinks(activeFile);
     if (outgoing.length === 0) return;
 
@@ -47,33 +70,18 @@ export class NeighborPreloader implements vscode.Disposable {
       maxNeighbors: this.opts.maxNeighbors,
       activeFileExclusionEnabled: true,
     });
+    if (neighbors.length === 0) return;
 
-    let opened = 0;
-    for (const n of neighbors) {
-      try {
-        // preview: true makes the tab "italicized" (auto-replacing) so we
-        // don't permanently clutter the workspace.
-        await vscode.window.showTextDocument(vscode.Uri.file(n), {
-          preview: true,
-          preserveFocus: true,
-          viewColumn: vscode.ViewColumn.Beside,
-        });
-        opened++;
-      } catch {
-        // ignore
-      }
-    }
-    // Refocus original editor
-    try {
-      await vscode.window.showTextDocument(editor.document, {
-        preview: false,
-        preserveFocus: false,
-        viewColumn: editor.viewColumn ?? vscode.ViewColumn.One,
-      });
-    } catch {
-      // ignore
-    }
-    this.log(`preload neighbors  ${Math.round(performance.now() - t0)}ms  opened=${opened}`);
+    // Load each neighbor SILENTLY into workspace.textDocuments. No tabs
+    // open, no focus change, no UI flicker. Documents become available
+    // via vscode.workspace.textDocuments.
+    let loaded = 0;
+    const results = await Promise.allSettled(
+      neighbors.map((n) => vscode.workspace.openTextDocument(vscode.Uri.file(n))),
+    );
+    for (const r of results) if (r.status === "fulfilled") loaded++;
+
+    this.log(`preload  ${Math.round(performance.now() - t0)}ms  loaded=${loaded}/${neighbors.length}  silent`);
   }
 
   dispose() {
