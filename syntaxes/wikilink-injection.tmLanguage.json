@@ -1,0 +1,59 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "scopeName": "markdown.wikilink.injection",
+  "injectionSelector": "L:text.html.markdown -(meta.embedded | meta.code-fence | markup.fenced_code | markup.inline.raw)",
+  "patterns": [
+    { "include": "#embed" },
+    { "include": "#wikilink" }
+  ],
+  "repository": {
+    "wikilink": {
+      "name": "markup.underline.link.wikilink.markdown",
+      "begin": "(\\[\\[)",
+      "beginCaptures": {
+        "1": { "name": "punctuation.definition.link.wikilink.markdown" }
+      },
+      "end": "(\\]\\])",
+      "endCaptures": {
+        "1": { "name": "punctuation.definition.link.wikilink.markdown" }
+      },
+      "patterns": [
+        {
+          "match": "(\\|)([^\\[\\]\\|]*)",
+          "captures": {
+            "1": { "name": "punctuation.separator.wikilink.markdown" },
+            "2": { "name": "string.other.alias.wikilink.markdown" }
+          }
+        },
+        {
+          "match": "(#)([^\\[\\]\\|#]*)",
+          "captures": {
+            "1": { "name": "punctuation.separator.anchor.wikilink.markdown" },
+            "2": { "name": "entity.name.tag.anchor.wikilink.markdown" }
+          }
+        },
+        {
+          "match": "[^\\[\\]\\|#]+",
+          "name": "entity.name.tag.wikilink.target.markdown"
+        }
+      ]
+    },
+    "embed": {
+      "name": "meta.embed.wikilink.markdown",
+      "begin": "(!\\[\\[)",
+      "beginCaptures": {
+        "1": { "name": "punctuation.definition.embed.wikilink.markdown" }
+      },
+      "end": "(\\]\\])",
+      "endCaptures": {
+        "1": { "name": "punctuation.definition.embed.wikilink.markdown" }
+      },
+      "patterns": [
+        {
+          "match": "[^\\[\\]]+",
+          "name": "string.other.embed.wikilink.markdown"
+        }
+      ]
+    }
+  }
+}

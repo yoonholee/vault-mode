@@ -1,0 +1,135 @@
+{
+  "name": "obsidian-light",
+  "displayName": "Obsidian Light",
+  "description": "Wikilinks, backlinks, and semantic-search bridge for Obsidian-style vaults in VSCode.",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "publisher": "yoonholee",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yoonholee/obsidian-light"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Notebooks", "Other"],
+  "activationEvents": [
+    "onLanguage:markdown",
+    "workspaceContains:**/*.md"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      { "command": "obsidianLight.semanticSearch", "title": "Vault: Semantic Search", "category": "Obsidian Light" },
+      { "command": "obsidianLight.insertWikilink", "title": "Vault: Insert Wikilink", "category": "Obsidian Light" },
+      { "command": "obsidianLight.relatedNotes", "title": "Vault: Show Related Notes", "category": "Obsidian Light" },
+      { "command": "obsidianLight.openDailyNote", "title": "Vault: Open Today's Daily Note", "category": "Obsidian Light" },
+      { "command": "obsidianLight.openRandomNote", "title": "Vault: Open Random Note", "category": "Obsidian Light" },
+      { "command": "obsidianLight.regenerateCopilotInstructions", "title": "Vault: Regenerate Copilot Instructions", "category": "Obsidian Light" },
+      { "command": "obsidianLight.preloadNeighbors", "title": "Vault: Preload Wikilink Neighbors", "category": "Obsidian Light" },
+      { "command": "obsidianLight.rebuildIndex", "title": "Vault: Rebuild Workspace Index", "category": "Obsidian Light" }
+    ],
+    "configuration": {
+      "title": "Obsidian Light",
+      "properties": {
+        "obsidianLight.vsPath": {
+          "type": "string",
+          "default": "vs",
+          "description": "Path to the `vs` semantic-search CLI. Resolved against $PATH."
+        },
+        "obsidianLight.vsTimeoutMs": {
+          "type": "number",
+          "default": 5000,
+          "description": "Hard timeout for any `vs` invocation, in milliseconds."
+        },
+        "obsidianLight.dailyNotesFolder": {
+          "type": "string",
+          "default": "Daily",
+          "description": "Folder under the vault root where daily notes are created."
+        },
+        "obsidianLight.dailyNoteTemplate": {
+          "type": "string",
+          "default": "# {date}\n\n",
+          "description": "Template for new daily notes. Placeholders: {date}, {iso}, {weekday}."
+        },
+        "obsidianLight.copilotBooster.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "On opening a markdown file, silently open its wikilink neighbors as preview tabs so Copilot reads them."
+        },
+        "obsidianLight.copilotBooster.maxNeighbors": {
+          "type": "number",
+          "default": 5,
+          "description": "Maximum number of neighbor files to open as preview tabs per active file."
+        },
+        "obsidianLight.copilotBooster.depth": {
+          "type": "number",
+          "default": 1,
+          "description": "Traversal depth for neighbor preloading. 1 = direct wikilinks only."
+        },
+        "obsidianLight.hover.augmentWithVs": {
+          "type": "boolean",
+          "default": true,
+          "description": "Append top-3 vs semantic neighbors to wikilink hover popups."
+        },
+        "obsidianLight.ignorePatterns": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [
+            ".cache/**",
+            ".obsidian/**",
+            "Archive/**",
+            "assets/**",
+            "node_modules/**",
+            "pdf-exports/**",
+            "pdfs/**",
+            "__etc/Roam-*/**"
+          ],
+          "description": "Glob patterns excluded from the workspace index. Also reads .gitignore and .ignore at vault root."
+        },
+        "obsidianLight.perfLog": {
+          "type": "boolean",
+          "default": true,
+          "description": "Log timings for hot paths to the Obsidian Light output channel."
+        }
+      }
+    },
+    "grammars": [
+      {
+        "scopeName": "markdown.wikilink.injection",
+        "path": "./syntaxes/wikilink-injection.tmLanguage.json",
+        "injectTo": ["text.html.markdown"]
+      }
+    ],
+    "markdown.markdownItPlugins": true
+  },
+  "scripts": {
+    "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --target=node18",
+    "build:watch": "npm run build -- --watch",
+    "vscode:prepublish": "npm run build -- --minify",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "test:integration": "node ./out/test/runTest.js",
+    "lint": "eslint src --ext ts && prettier --check src test",
+    "lint:fix": "eslint src --ext ts --fix && prettier --write src test",
+    "typecheck": "tsc --noEmit",
+    "bench": "node --experimental-vm-modules ./scripts/bench-all.mjs"
+  },
+  "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "@vscode/test-electron": "^2.4.0",
+    "esbuild": "^0.23.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  },
+  "dependencies": {
+    "markdown-it": "^14.1.0"
+  }
+}
