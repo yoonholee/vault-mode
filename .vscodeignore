@@ -11,6 +11,9 @@ agent_notes/**
 .prettierrc.json
 tsconfig.json
 vitest.config.ts
+SPEC.md
+*.vsix
+package-lock.json
 **/*.map
 **/*.ts
 !dist/**/*.js

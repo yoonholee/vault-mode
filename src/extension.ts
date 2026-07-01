@@ -79,7 +79,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
   const preloader = new NeighborPreloader(
     index,
     {
-      enabled: cfg.get<boolean>("copilotBooster.enabled") ?? true,
+      enabled: cfg.get<boolean>("copilotBooster.enabled") ?? false,
       maxNeighbors: cfg.get<number>("copilotBooster.maxNeighbors") ?? 5,
       depth: cfg.get<number>("copilotBooster.depth") ?? 1,
     },
@@ -118,7 +118,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
       const cfg2 = vscode.workspace.getConfiguration("obsidianLight");
       perfLog.setEnabled(cfg2.get<boolean>("perfLog") ?? true);
       preloader.setOptions({
-        enabled: cfg2.get<boolean>("copilotBooster.enabled") ?? true,
+        enabled: cfg2.get<boolean>("copilotBooster.enabled") ?? false,
         maxNeighbors: cfg2.get<number>("copilotBooster.maxNeighbors") ?? 5,
         depth: cfg2.get<number>("copilotBooster.depth") ?? 1,
       });

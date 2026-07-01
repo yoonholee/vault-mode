@@ -8,12 +8,13 @@
   "publisher": "yoonholee",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yoonholee/obsidian-light"
+    "url": "https://github.com/yoonholee/obsidian-light.git"
   },
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": ["Notebooks", "Other"],
+  "keywords": ["obsidian", "wikilink", "backlinks", "markdown", "semantic search"],
   "activationEvents": [
     "onLanguage:markdown",
     "workspaceContains:**/*.md"
