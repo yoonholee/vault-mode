@@ -2,7 +2,7 @@
   "name": "vault-mode",
   "displayName": "Vault Mode",
   "description": "Wikilinks, backlinks, daily notes, a styled Markdown preview, and optional semantic search for markdown vaults. For VS Code, Cursor, and compatible editors.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "icon": "icon.png",
   "license": "MIT",
   "publisher": "yoonholee",
@@ -39,7 +39,6 @@
       { "command": "vaultMode.openDailyNote", "title": "Vault: Open Today's Daily Note", "category": "Vault Mode" },
       { "command": "vaultMode.openRandomNote", "title": "Vault: Open Random Note", "category": "Vault Mode" },
       { "command": "vaultMode.regenerateCopilotInstructions", "title": "Vault: Regenerate Copilot Instructions", "category": "Vault Mode" },
-      { "command": "vaultMode.preloadNeighbors", "title": "Vault: Preload Wikilink Neighbors", "category": "Vault Mode" },
       { "command": "vaultMode.rebuildIndex", "title": "Vault: Rebuild Workspace Index", "category": "Vault Mode" },
       { "command": "vaultMode.previewToSide", "title": "Vault: Open Markdown Preview to Side", "category": "Vault Mode", "icon": "$(layout-sidebar-right)" }
     ],
@@ -75,20 +74,10 @@
           "default": "# {date}\n\n",
           "description": "Template for new daily notes. Placeholders: {date}, {iso}, {weekday}."
         },
-        "vaultMode.copilotBooster.enabled": {
+        "vaultMode.updateLinksOnRename": {
           "type": "boolean",
-          "default": false,
-          "description": "EXPERIMENTAL: silently load wikilink neighbors of the active file into workspace.textDocuments so Copilot has them as context. Off by default; unclear whether Copilot's inline-completion heuristic actually reads silent-loaded documents. Use workspace.openTextDocument under the hood (no UI changes)."
-        },
-        "vaultMode.copilotBooster.maxNeighbors": {
-          "type": "number",
-          "default": 5,
-          "description": "Maximum number of neighbor files to open as preview tabs per active file."
-        },
-        "vaultMode.copilotBooster.depth": {
-          "type": "number",
-          "default": 1,
-          "description": "Traversal depth for neighbor preloading. 1 = direct wikilinks only."
+          "default": true,
+          "description": "When a note file is renamed, rewrite wikilinks across the workspace to point at the new name."
         },
         "vaultMode.hover.augmentWithVs": {
           "type": "boolean",
@@ -132,7 +121,7 @@
     "vscode:prepublish": "npm run build -- --minify",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
-    "test:integration": "node ./out/test/runTest.js",
+    "test:integration": "npm run build && node ./test/integration/runTest.mjs",
     "lint": "eslint src --ext ts && prettier --check src test",
     "lint:fix": "eslint src --ext ts --fix && prettier --write src test",
     "typecheck": "tsc --noEmit",

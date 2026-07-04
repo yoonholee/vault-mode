@@ -50,6 +50,43 @@ export function wikilinkPlugin(md: MarkdownIt, options: WikilinkPluginOptions): 
   };
 }
 
+// Callout headers `> [!type] Title` (optional +/- fold marker) render as a bold
+// title inside the blockquote, mirroring md-print's preprocess. The blockquote
+// gets `callout callout-<type>` classes so CSS can style per-type later.
+const CALLOUT_RE = /^\[!(\w+)\][+-]?[ \t]*(.*)$/;
+
+interface MdToken {
+  type: string;
+  content: string;
+  attrJoin(name: string, value: string): void;
+}
+
+export function calloutPlugin(md: MarkdownIt): void {
+  md.core.ruler.after("block", "vault-callout", (state) => {
+    const tokens = state.tokens as unknown as MdToken[];
+    for (let i = 0; i < tokens.length; i++) {
+      if (tokens[i].type !== "blockquote_open") continue;
+      // First inline token inside this blockquote holds the callout header.
+      let j = i + 1;
+      while (
+        j < tokens.length &&
+        tokens[j].type !== "inline" &&
+        tokens[j].type !== "blockquote_close"
+      )
+        j++;
+      if (j >= tokens.length || tokens[j].type !== "inline") continue;
+      const lines = tokens[j].content.split("\n");
+      const m = CALLOUT_RE.exec(lines[0]);
+      if (!m) continue;
+      const type = m[1].toLowerCase();
+      const title = m[2].trim() || m[1][0].toUpperCase() + m[1].slice(1).toLowerCase();
+      lines[0] = `**${title}**`;
+      tokens[j].content = lines.join("\n");
+      tokens[i].attrJoin("class", `callout callout-${type}`);
+    }
+  });
+}
+
 function wikilinkRule(state: MdStateInline, silent: boolean): boolean {
   const start = state.pos;
   // Match optional ! then [[

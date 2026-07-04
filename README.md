@@ -12,11 +12,12 @@ No external LSP, no server, no sync: an in-memory index of the workspace, nothin
 - **Wikilink preview rendering.** `[[Note]]`, `[[Note|alias]]`, `[[Note#heading]]`, `![[Note]]` become clickable links in the Markdown preview. Code fences and inline code spans are respected.
 - **Wikilink intelligence.** Ctrl/Cmd-click a `[[Wikilink]]` to jump. Hover for a content preview. Type `[[` for completion. "Find all references" lists backlinks.
 - **Syntax highlighting** for wikilinks in the editor (distinct token scope; styled by your color theme).
+- **Callouts in the preview.** `> [!note] Title` renders as a bold-titled blockquote instead of literal `[!note]` text (same treatment `md-print` applies in PDFs).
 - **Styled preview.** The built-in Markdown preview gets an opinionated light style: serif headings, restrained palette, tight vertical rhythm, hidden YAML-frontmatter table. Ships as `markdown.previewStyles`, so it works in any folder with zero settings.
 - **Preview-to-side button** in the editor title bar for markdown and markdown-adjacent files (`prompt`, `instructions`, `chatagent`, `skill`).
+- **Rename propagation.** Rename a note file and every `[[wikilink]]` pointing at it is rewritten (alias/anchor/embed preserved), as one undoable edit.
 - **Daily notes.** `Vault: Open Today's Daily Note` creates `Daily/YYYY-MM-DD.md` from a configurable template.
 - **Semantic search (optional).** If you have a compatible search CLI (see below), you get `Vault: Semantic Search`, `Vault: Insert Wikilink`, `Vault: Show Related Notes`, and hover popups augmented with the top-3 semantic neighbors. Without one, these features quietly disable; everything else is unaffected.
-- **Copilot context booster (EXPERIMENTAL, off by default).** Silently loads wikilink neighbors of the active file into VS Code's document cache so Copilot has them as context. Unverified whether Copilot's inline-completion heuristic reads silently-loaded documents; enable and A/B if curious.
 - **Copilot instructions generator.** `Vault: Regenerate Copilot Instructions` writes `.github/copilot-instructions.md` from your vault structure.
 
 ## Opinionated, on purpose
@@ -63,9 +64,7 @@ If the binary is not on PATH at activation, the vs-dependent features disable wi
 | `vaultMode.vsTimeoutMs` | `5000` | Hard timeout for any search invocation |
 | `vaultMode.dailyNotesFolder` | `Daily` | Folder under vault root for daily notes |
 | `vaultMode.dailyNoteTemplate` | `# {date}\n\n` | Template (placeholders: `{date}`, `{iso}`, `{weekday}`) |
-| `vaultMode.copilotBooster.enabled` | `false` | EXPERIMENTAL: silent neighbor load |
-| `vaultMode.copilotBooster.maxNeighbors` | `5` | Max neighbors per active file |
-| `vaultMode.copilotBooster.depth` | `1` | Traversal depth (reserved; only depth=1 implemented) |
+| `vaultMode.updateLinksOnRename` | `true` | Rewrite wikilinks when a note is renamed |
 | `vaultMode.hover.augmentWithVs` | `true` | Append semantic neighbors to wikilink hover |
 | `vaultMode.ignorePatterns` | (see settings) | Globs excluded from the workspace index |
 | `vaultMode.perfLog` | `true` | Log per-operation timings to the output channel |
@@ -81,7 +80,6 @@ If the binary is not on PATH at activation, the vs-dependent features disable wi
 | `vaultMode.openRandomNote` | Open a random vault note |
 | `vaultMode.previewToSide` | Open Markdown preview to the side |
 | `vaultMode.regenerateCopilotInstructions` | Write `.github/copilot-instructions.md` |
-| `vaultMode.preloadNeighbors` | Manually trigger neighbor preload |
 | `vaultMode.rebuildIndex` | Rebuild the wikilink index from scratch |
 
 No default keybindings; bind in `keybindings.json` if you want hotkeys.

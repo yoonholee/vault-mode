@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0
+
+- Callouts render in the preview: `> [!type] Title` becomes a bold-titled blockquote with `callout callout-<type>` classes (was literal text).
+- Rename propagation: renaming a note rewrites every `[[wikilink]]` pointing at it (alias/anchor/embed preserved), gated by `vaultMode.updateLinksOnRename` (default on). Applies to renames made inside the editor; fs-level renames from outside are not observable.
+- Removed the experimental Copilot context booster. Copilot's documented completion context is files open in visible editors; the booster's silently-loaded documents never reach it, so the feature was a no-op. Configs `vaultMode.copilotBooster.*` and the preload command are gone.
+- Integration test suite runs the real extension host (`npm run test:integration`): activation, commands, definition resolution, rename propagation.
+- CI on GitHub Actions (typecheck, lint, unit + integration tests, package); tagged releases attach the VSIX automatically.
+- Dead code removed: legacy marksman smoke scripts, superseded parser bench, unused index/resolver/fs methods.
+
 ## 0.2.0
 
 First public release, under the new name **Vault Mode** (previously a personal-install-only extension).

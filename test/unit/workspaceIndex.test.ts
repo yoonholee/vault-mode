@@ -47,15 +47,6 @@ describe("WorkspaceIndex", () => {
     expect(idx.resolve("Foo")).toBe("/vault/sub/Foo.md");
   });
 
-  it("outgoingLinks returns parsed wikilinks for a file", async () => {
-    fs.files.set("/vault/A.md", "[[B]] and [[C|alias]]");
-    fs.files.set("/vault/B.md", "");
-    fs.files.set("/vault/C.md", "");
-    await idx.buildAll([]);
-    const out = idx.outgoingLinks("/vault/A.md");
-    expect(out.map((l) => l.target)).toEqual(["B", "C"]);
-  });
-
   it("updateFile incrementally updates resolver and backlinks", async () => {
     fs.files.set("/vault/A.md", "[[Old]]");
     fs.files.set("/vault/Old.md", "");
@@ -112,5 +103,18 @@ describe("WorkspaceIndex", () => {
     fs.files.set("/vault/sub/Bar.md", "");
     await idx.buildAll([]);
     expect(idx.allStems().sort()).toEqual(["a", "bar"]);
+  });
+});
+
+describe("sourcesLinkingToStem", () => {
+  it("finds sources by stem, including path-qualified targets, case-insensitively", async () => {
+    const fs = new InMemoryFs();
+    fs.files.set("/v/a.md", "[[Target]]");
+    fs.files.set("/v/b.md", "[[dir/target]]");
+    fs.files.set("/v/c.md", "[[Unrelated]]");
+    fs.files.set("/v/Target.md", "hi");
+    const idx = new WorkspaceIndex("/v", fs);
+    await idx.buildAll([]);
+    expect(idx.sourcesLinkingToStem("target").sort()).toEqual(["/v/a.md", "/v/b.md"]);
   });
 });

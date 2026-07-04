@@ -1,11 +1,12 @@
 // Vault Mode - extension entry point.
 //
 // On activate: pick the first workspace folder as the vault, build the
-// WorkspaceIndex, wire providers/commands/preloader, install a FS watcher.
+// WorkspaceIndex, wire providers/commands, install a FS watcher.
 // Returns an object whose `extendMarkdownIt` is called by VSCode to inject
 // the wikilink preview plugin.
 
 import * as vscode from "vscode";
+import * as path from "node:path";
 import MarkdownIt from "markdown-it";
 import { WorkspaceIndex } from "./workspaceIndex";
 import { VscodeFs } from "./services/vscodeFs";
@@ -17,9 +18,9 @@ import {
   CompletionProvider,
   ReferenceProvider,
 } from "./providers";
-import { NeighborPreloader } from "./neighborPreloader";
 import { registerCommands } from "./commands";
-import { wikilinkPlugin } from "./markdownItPlugin";
+import { computeRenameEdits } from "./renameWikilinks";
+import { wikilinkPlugin, calloutPlugin } from "./markdownItPlugin";
 
 let globalIndex: WorkspaceIndex | undefined;
 let globalOutput: vscode.OutputChannel | undefined;
@@ -82,24 +83,11 @@ export async function activate(ctx: vscode.ExtensionContext) {
     vscode.languages.registerCompletionItemProvider(mdSelector, new CompletionProvider(index), "["),
   );
 
-  // Preloader
-  const preloader = new NeighborPreloader(
-    index,
-    {
-      enabled: cfg.get<boolean>("copilotBooster.enabled") ?? false,
-      maxNeighbors: cfg.get<number>("copilotBooster.maxNeighbors") ?? 5,
-      depth: cfg.get<number>("copilotBooster.depth") ?? 1,
-    },
-    (line) => output.appendLine(line),
-  );
-  ctx.subscriptions.push(preloader);
-
   // Commands
   registerCommands({
     context: ctx,
     index,
     vs,
-    preloader,
     vaultRoot,
     log: (line) => output.appendLine(line),
   });
@@ -122,17 +110,44 @@ export async function activate(ctx: vscode.ExtensionContext) {
   watcher.onDidChange(update);
   watcher.onDidDelete(remove);
 
+  // Rename propagation: when a note's stem changes, rewrite wikilinks that point at it
+  ctx.subscriptions.push(
+    vscode.workspace.onDidRenameFiles(async (e) => {
+      const cfgNow = vscode.workspace.getConfiguration("vaultMode");
+      if (!(cfgNow.get<boolean>("updateLinksOnRename") ?? true)) return;
+      for (const { oldUri, newUri } of e.files) {
+        if (!oldUri.fsPath.endsWith(".md") || !newUri.fsPath.endsWith(".md")) continue;
+        const oldStem = path.basename(oldUri.fsPath, ".md");
+        const newStem = path.basename(newUri.fsPath, ".md");
+        if (oldStem === newStem) continue;
+        const sources = index.sourcesLinkingToStem(oldStem);
+        if (sources.length === 0) continue;
+        const edit = new vscode.WorkspaceEdit();
+        let touched = 0;
+        for (const src of sources) {
+          const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(src));
+          const updated = computeRenameEdits(doc.getText(), oldStem, newStem);
+          if (updated === null) continue;
+          const full = new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length));
+          edit.replace(doc.uri, full, updated);
+          touched++;
+        }
+        if (touched > 0) {
+          await vscode.workspace.applyEdit(edit);
+          output.appendLine(
+            `rename ${oldStem} -> ${newStem}: updated wikilinks in ${touched} files`,
+          );
+        }
+      }
+    }),
+  );
+
   // React to config changes
   ctx.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (!e.affectsConfiguration("vaultMode")) return;
       const cfg2 = vscode.workspace.getConfiguration("vaultMode");
       perfLog.setEnabled(cfg2.get<boolean>("perfLog") ?? true);
-      preloader.setOptions({
-        enabled: cfg2.get<boolean>("copilotBooster.enabled") ?? false,
-        maxNeighbors: cfg2.get<number>("copilotBooster.maxNeighbors") ?? 5,
-        depth: cfg2.get<number>("copilotBooster.depth") ?? 1,
-      });
     }),
   );
 
@@ -142,6 +157,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
   // inject our wikilink plugin.
   return {
     extendMarkdownIt(md: MarkdownIt) {
+      md.use(calloutPlugin);
       return md.use(wikilinkPlugin, {
         resolve: (target: string) => {
           if (!globalIndex) return undefined;

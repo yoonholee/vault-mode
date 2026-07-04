@@ -2,7 +2,6 @@
 // in addition to the explicit ignorePatterns passed to listFiles.
 
 import * as vscode from "vscode";
-import * as path from "node:path";
 import * as fs from "node:fs/promises";
 import type { FileSystem } from "../workspaceIndex";
 
@@ -22,10 +21,5 @@ export class VscodeFs implements FileSystem {
 
   async readFile(absPath: string): Promise<string> {
     return fs.readFile(absPath, "utf8");
-  }
-
-  /** Helper for callers that need the relative path. */
-  toRel(absPath: string): string {
-    return path.relative(this.root, absPath);
   }
 }

@@ -10,7 +10,9 @@ Format per entry: what tried, what happened, workaround, suggested fix.
 
 **Root cause:** Wrong API. `showTextDocument` mutates the UI. We wanted "load into context, no UI change." The right call is `workspace.openTextDocument(uri)`: silent load, document goes into `workspace.textDocuments`, no tab, no focus.
 
-**Workaround:** v0.1.1 switches to silent `openTextDocument`, dedupes per active file per session, and flips default to OFF. Unverified whether Copilot's inline-completion heuristic reads silently-loaded documents vs only `window.tabGroups`. If it's the latter, the feature is fundamentally a no-op and we should remove it; if the former, it's free context. Need real A/B before deciding.
+**Workaround:** v0.1.1 switched to silent `openTextDocument`, deduped per active file per session, default OFF.
+
+**RESOLVED 2026-07-04:** removed in v0.3.0. Copilot's documented completion context is files open in visible editors (tabs); silently-loaded `workspace.textDocuments` entries never reach it, so the feature was a no-op.
 
 ## 2026-05-23: marksman SIGSEGV on real vault
 

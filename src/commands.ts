@@ -6,7 +6,6 @@ import * as fs from "node:fs/promises";
 import * as fsSync from "node:fs";
 import type { WorkspaceIndex } from "./workspaceIndex";
 import type { VsClient } from "./vsClient";
-import type { NeighborPreloader } from "./neighborPreloader";
 import { dailyNotePath, renderDailyNoteTemplate } from "./dailyNote";
 import { generateCopilotInstructions } from "./copilotInstructionsGen";
 
@@ -14,7 +13,6 @@ export interface CommandDeps {
   context: vscode.ExtensionContext;
   index: WorkspaceIndex;
   vs: VsClient | null;
-  preloader: NeighborPreloader;
   vaultRoot: string;
   log: (line: string) => void;
 }
@@ -30,11 +28,6 @@ export function registerCommands(deps: CommandDeps): void {
   r("vaultMode.openDailyNote", () => openDailyNote(deps));
   r("vaultMode.openRandomNote", () => openRandomNote(deps));
   r("vaultMode.regenerateCopilotInstructions", () => regenerateCopilotInstructions(deps));
-  r("vaultMode.preloadNeighbors", () => {
-    const ed = vscode.window.activeTextEditor;
-    if (ed) return deps.preloader.maybePreload(ed);
-    return undefined;
-  });
   r("vaultMode.previewToSide", () => vscode.commands.executeCommand("markdown.showPreviewToSide"));
   r("vaultMode.rebuildIndex", async () => {
     const cfg = vscode.workspace.getConfiguration("vaultMode");

@@ -22,7 +22,7 @@ export interface BuildResult {
 export class WorkspaceIndex {
   readonly resolver = new Resolver();
   readonly backlinks = new BacklinksIndex();
-  // absPath -> outgoing wikilink targets (for preloader and other consumers)
+  // absPath -> outgoing wikilink targets
   private outgoing = new Map<string, OutgoingLink[]>();
 
   constructor(
@@ -98,12 +98,22 @@ export class WorkspaceIndex {
     return this.backlinks.backlinks(target);
   }
 
-  outgoingLinks(absPath: string): OutgoingLink[] {
-    return [...(this.outgoing.get(absPath) ?? [])];
-  }
-
   allStems(): string[] {
     return this.resolver.allStems();
+  }
+
+  /** Absolute paths of files with at least one outgoing link whose stem matches (case-insensitive). */
+  sourcesLinkingToStem(stem: string): string[] {
+    const lower = stem.toLowerCase();
+    const out: string[] = [];
+    for (const [src, links] of this.outgoing) {
+      const hit = links.some((l) => {
+        const segments = l.target.split("/");
+        return segments[segments.length - 1].toLowerCase() === lower;
+      });
+      if (hit) out.push(src);
+    }
+    return out;
   }
 
   private toRel(abs: string): string {

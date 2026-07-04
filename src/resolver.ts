@@ -69,13 +69,6 @@ export class Resolver {
   allStems(): string[] {
     return [...this.byStem.keys()];
   }
-
-  /** Total number of indexed files (counting all paths under all stems). */
-  size(): number {
-    let n = 0;
-    for (const list of this.byStem.values()) n += list.length;
-    return n;
-  }
 }
 
 function stemOf(relPath: string): string {
