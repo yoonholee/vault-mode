@@ -82,13 +82,15 @@ If the binary is not on PATH at activation, the vs-dependent features disable wi
 
 No default keybindings; bind in `keybindings.json` if you want hotkeys.
 
-## Performance (benched on a 2165-file vault)
+## Performance (benched on a 2716-file / 18MB vault, `npm run bench`, mean ± σ over 5 runs)
 
-| Operation | Measured | Target |
-|---|---|---|
-| Parser, full vault | 524ms total / 0.24ms mean per file | n/a |
-| Parser, single 100-link doc | 0.6ms (235 links in 0.6ms) | <50ms |
-| Bundle size | ~36KB | <500KB |
+| Operation | Measured |
+|---|---|
+| Full index build (read + parse, 32-way concurrent) | 539 ± 16 ms |
+| Parse all files, CPU only | 84 ± 6 ms |
+| Resolve 2000 wikilink targets | 2.4 ± 0.5 ms |
+| Backlinks for 2000 targets | 0.6 ± 0.1 ms |
+| Bundle size | ~36KB |
 
 Activation, index build, and hover latencies are logged to the "Vault Light" output channel when `perfLog` is on.
 
