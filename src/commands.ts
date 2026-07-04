@@ -24,29 +24,29 @@ export function registerCommands(deps: CommandDeps): void {
   const r = (cmd: string, handler: (...args: unknown[]) => unknown) =>
     context.subscriptions.push(vscode.commands.registerCommand(cmd, handler));
 
-  r("obsidianLight.semanticSearch", () => semanticSearch(deps));
-  r("obsidianLight.insertWikilink", () => insertWikilink(deps));
-  r("obsidianLight.relatedNotes", () => relatedNotes(deps));
-  r("obsidianLight.openDailyNote", () => openDailyNote(deps));
-  r("obsidianLight.openRandomNote", () => openRandomNote(deps));
-  r("obsidianLight.regenerateCopilotInstructions", () => regenerateCopilotInstructions(deps));
-  r("obsidianLight.preloadNeighbors", () => {
+  r("vaultLight.semanticSearch", () => semanticSearch(deps));
+  r("vaultLight.insertWikilink", () => insertWikilink(deps));
+  r("vaultLight.relatedNotes", () => relatedNotes(deps));
+  r("vaultLight.openDailyNote", () => openDailyNote(deps));
+  r("vaultLight.openRandomNote", () => openRandomNote(deps));
+  r("vaultLight.regenerateCopilotInstructions", () => regenerateCopilotInstructions(deps));
+  r("vaultLight.preloadNeighbors", () => {
     const ed = vscode.window.activeTextEditor;
     if (ed) return deps.preloader.maybePreload(ed);
     return undefined;
   });
-  r("obsidianLight.rebuildIndex", async () => {
-    const cfg = vscode.workspace.getConfiguration("obsidianLight");
+  r("vaultLight.rebuildIndex", async () => {
+    const cfg = vscode.workspace.getConfiguration("vaultLight");
     const patterns = cfg.get<string[]>("ignorePatterns") ?? [];
     const r = await deps.index.buildAll(patterns);
     deps.log(`rebuildIndex  ${r.durationMs}ms  files=${r.files}`);
-    vscode.window.showInformationMessage(`Obsidian Light: indexed ${r.files} files in ${Math.round(r.durationMs)}ms`);
+    vscode.window.showInformationMessage(`Vault Light: indexed ${r.files} files in ${Math.round(r.durationMs)}ms`);
   });
 }
 
 async function semanticSearch(deps: CommandDeps): Promise<void> {
   if (!deps.vs) {
-    vscode.window.showErrorMessage("Obsidian Light: `vs` is not configured.");
+    vscode.window.showErrorMessage("Vault Light: `vs` is not configured.");
     return;
   }
   const query = await vscode.window.showInputBox({ prompt: "Vault semantic search", placeHolder: "query" });
@@ -101,7 +101,7 @@ async function relatedNotes(deps: CommandDeps): Promise<void> {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return;
   if (!deps.vs) {
-    vscode.window.showErrorMessage("Obsidian Light: `vs` is not configured.");
+    vscode.window.showErrorMessage("Vault Light: `vs` is not configured.");
     return;
   }
   const stem = path.basename(editor.document.uri.fsPath, ".md");
@@ -119,7 +119,7 @@ async function relatedNotes(deps: CommandDeps): Promise<void> {
 }
 
 async function openDailyNote(deps: CommandDeps): Promise<void> {
-  const cfg = vscode.workspace.getConfiguration("obsidianLight");
+  const cfg = vscode.workspace.getConfiguration("vaultLight");
   const folder = cfg.get<string>("dailyNotesFolder") ?? "Daily";
   const template = cfg.get<string>("dailyNoteTemplate") ?? "# {date}\n\n";
   const now = new Date();

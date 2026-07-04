@@ -1,4 +1,4 @@
-# Obsidian Light
+# Vault Light
 
 A small VSCode extension that gives Obsidian-style vaults clickable wikilinks, backlinks, semantic search via `vs`, and a Copilot context booster — without depending on an external LSP.
 
@@ -19,11 +19,11 @@ Originally meant to be a thin wrapper over the marksman LSP. Marksman crashes (S
 From source:
 
 ```sh
-cd ~/repos/vscode-extensions/obsidian-light
+cd ~/repos/vscode-extensions/vault-light
 npm install
 npm run build
 npx vsce package
-code --install-extension obsidian-light-0.1.0.vsix
+code --install-extension vault-light-0.1.0.vsix
 ```
 
 Recommended sidecar extensions (not bundled):
@@ -36,16 +36,16 @@ Recommended sidecar extensions (not bundled):
 
 | Setting | Default | What |
 |---|---|---|
-| `obsidianLight.vsPath` | `vs` | Path to the `vs` CLI |
-| `obsidianLight.vsTimeoutMs` | `5000` | Hard timeout for any `vs` invocation |
-| `obsidianLight.dailyNotesFolder` | `Daily` | Folder under vault root for daily notes |
-| `obsidianLight.dailyNoteTemplate` | `# {date}\n\n` | Template (placeholders: `{date}`, `{iso}`, `{weekday}`) |
-| `obsidianLight.copilotBooster.enabled` | `false` | EXPERIMENTAL: silent neighbor load |
-| `obsidianLight.copilotBooster.maxNeighbors` | `5` | Max neighbors per active file |
-| `obsidianLight.copilotBooster.depth` | `1` | Traversal depth (reserved; only depth=1 implemented in v0) |
-| `obsidianLight.hover.augmentWithVs` | `true` | Append vs neighbors to wikilink hover |
-| `obsidianLight.ignorePatterns` | (see settings) | Globs excluded from the workspace index |
-| `obsidianLight.perfLog` | `true` | Log per-operation timings to the output channel |
+| `vaultLight.vsPath` | `vs` | Path to the `vs` CLI |
+| `vaultLight.vsTimeoutMs` | `5000` | Hard timeout for any `vs` invocation |
+| `vaultLight.dailyNotesFolder` | `Daily` | Folder under vault root for daily notes |
+| `vaultLight.dailyNoteTemplate` | `# {date}\n\n` | Template (placeholders: `{date}`, `{iso}`, `{weekday}`) |
+| `vaultLight.copilotBooster.enabled` | `false` | EXPERIMENTAL: silent neighbor load |
+| `vaultLight.copilotBooster.maxNeighbors` | `5` | Max neighbors per active file |
+| `vaultLight.copilotBooster.depth` | `1` | Traversal depth (reserved; only depth=1 implemented in v0) |
+| `vaultLight.hover.augmentWithVs` | `true` | Append vs neighbors to wikilink hover |
+| `vaultLight.ignorePatterns` | (see settings) | Globs excluded from the workspace index |
+| `vaultLight.perfLog` | `true` | Log per-operation timings to the output channel |
 
 ## Performance (benched on a 2165-file vault)
 
@@ -56,20 +56,20 @@ Recommended sidecar extensions (not bundled):
 | Build extension bundle | 7ms | n/a |
 | Bundle size | 35.4KB | <500KB |
 
-Extension activation, index build, and hover-provider latencies are logged to the "Obsidian Light" output channel when `perfLog` is on.
+Extension activation, index build, and hover-provider latencies are logged to the "Vault Light" output channel when `perfLog` is on.
 
 ## Commands
 
 | Command | Default keybinding | What |
 |---|---|---|
-| `obsidianLight.semanticSearch` | (none) | Open QuickPick over `vs` results |
-| `obsidianLight.insertWikilink` | (none) | Search + insert `[[Stem]]` at cursor |
-| `obsidianLight.relatedNotes` | (none) | Show vs-neighbors of the current file |
-| `obsidianLight.openDailyNote` | (none) | Open / create today's daily note |
-| `obsidianLight.openRandomNote` | (none) | Open a random vault note |
-| `obsidianLight.regenerateCopilotInstructions` | (none) | Write `.github/copilot-instructions.md` |
-| `obsidianLight.preloadNeighbors` | (none) | Manually trigger neighbor preload |
-| `obsidianLight.rebuildIndex` | (none) | Rebuild the wikilink index from scratch |
+| `vaultLight.semanticSearch` | (none) | Open QuickPick over `vs` results |
+| `vaultLight.insertWikilink` | (none) | Search + insert `[[Stem]]` at cursor |
+| `vaultLight.relatedNotes` | (none) | Show vs-neighbors of the current file |
+| `vaultLight.openDailyNote` | (none) | Open / create today's daily note |
+| `vaultLight.openRandomNote` | (none) | Open a random vault note |
+| `vaultLight.regenerateCopilotInstructions` | (none) | Write `.github/copilot-instructions.md` |
+| `vaultLight.preloadNeighbors` | (none) | Manually trigger neighbor preload |
+| `vaultLight.rebuildIndex` | (none) | Rebuild the wikilink index from scratch |
 
 Bind any of these in `keybindings.json` if you want hotkeys.
 

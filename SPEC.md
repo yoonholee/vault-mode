@@ -1,8 +1,8 @@
-# Obsidian Light — Spec
+# Vault Light — Spec
 
 ## Status: approved
 
-Yoonho greenlit on 2026-05-23 with these specifics: don't fork Foam, use marksman + thin extension; install MarkTone-equivalents alongside; vs integration; hover provider; Copilot context booster via preview-tab preloader; project name "Obsidian Light"; write tests up front; measure everything; iterate.
+Yoonho greenlit on 2026-05-23 with these specifics: don't fork Foam, use marksman + thin extension; install MarkTone-equivalents alongside; vs integration; hover provider; Copilot context booster via preview-tab preloader; project name "Vault Light"; write tests up front; measure everything; iterate.
 
 ## Goal
 
@@ -65,7 +65,7 @@ Self-contained TypeScript extension. No external LSP. (Original plan was marksma
 | Syntax injection | TextMate grammar JSON | Injects into `text.html.markdown` so wikilinks get distinct token scope and color. |
 | VsClient | TS service | Wraps `vs` CLI: timeout, stderr capture, parses `--paths-only` output. |
 | Providers | TS | `DefinitionProvider`, `HoverProvider`, `CompletionProvider`, `ReferenceProvider` (backlinks) wired to the index. `HoverProvider` augments with top-3 `vs` neighbors. |
-| Commands | TS | `obsidianLight.semanticSearch`, `.insertWikilink`, `.relatedNotes`, `.openDailyNote`, `.openRandomNote`, `.regenerateCopilotInstructions`. |
+| Commands | TS | `vaultLight.semanticSearch`, `.insertWikilink`, `.relatedNotes`, `.openDailyNote`, `.openRandomNote`, `.regenerateCopilotInstructions`. |
 | NeighborPreloader | TS | On active editor change in markdown: extract wikilinks, open each target as a preview tab so Copilot reads their content. Configurable. |
 | CopilotInstructionsGen | TS command | Generate `.github/copilot-instructions.md` from vault structure + `CLAUDE.md`. |
 
@@ -107,7 +107,7 @@ Self-contained TypeScript extension. No external LSP. (Original plan was marksma
 
 ## Distribution
 
-Personal-first. Repo at `~/repos/vscode-extensions/obsidian-light`. Install via `vsce package` + manual `code --install-extension`. Marketplace publication deferred until v0 has been used for 2+ weeks and proven better than current setup.
+Personal-first. Repo at `~/repos/vscode-extensions/vault-light`. Install via `vsce package` + manual `code --install-extension`. Marketplace publication deferred until v0 has been used for 2+ weeks and proven better than current setup.
 
 ## License
 

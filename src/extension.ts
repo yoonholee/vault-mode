@@ -1,4 +1,4 @@
-// Obsidian Light - extension entry point.
+// Vault Light - extension entry point.
 //
 // On activate: pick the first workspace folder as the vault, build the
 // WorkspaceIndex, wire providers/commands/preloader, install a FS watcher.
@@ -26,11 +26,11 @@ let globalOutput: vscode.OutputChannel | undefined;
 
 export async function activate(ctx: vscode.ExtensionContext) {
   const t0 = performance.now();
-  const output = vscode.window.createOutputChannel("Obsidian Light");
+  const output = vscode.window.createOutputChannel("Vault Light");
   globalOutput = output;
   ctx.subscriptions.push(output);
 
-  const cfg = vscode.workspace.getConfiguration("obsidianLight");
+  const cfg = vscode.workspace.getConfiguration("vaultLight");
   const perfLog = new PerfLogger(
     (line) => output.appendLine(line),
     { enabled: cfg.get<boolean>("perfLog") ?? true },
@@ -38,7 +38,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
 
   const folders = vscode.workspace.workspaceFolders;
   if (!folders || folders.length === 0) {
-    output.appendLine("No workspace folder; Obsidian Light idle.");
+    output.appendLine("No workspace folder; Vault Light idle.");
     return undefined;
   }
   const vaultRoot = folders[0].uri.fsPath;
@@ -114,8 +114,8 @@ export async function activate(ctx: vscode.ExtensionContext) {
   // React to config changes
   ctx.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
-      if (!e.affectsConfiguration("obsidianLight")) return;
-      const cfg2 = vscode.workspace.getConfiguration("obsidianLight");
+      if (!e.affectsConfiguration("vaultLight")) return;
+      const cfg2 = vscode.workspace.getConfiguration("vaultLight");
       perfLog.setEnabled(cfg2.get<boolean>("perfLog") ?? true);
       preloader.setOptions({
         enabled: cfg2.get<boolean>("copilotBooster.enabled") ?? false,
@@ -125,7 +125,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
     }),
   );
 
-  output.appendLine(`Obsidian Light activated in ${Math.round(performance.now() - t0)}ms`);
+  output.appendLine(`Vault Light activated in ${Math.round(performance.now() - t0)}ms`);
 
   // Return public API: VSCode markdown preview calls extendMarkdownIt to
   // inject our wikilink plugin.

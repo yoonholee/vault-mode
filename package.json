@@ -1,6 +1,6 @@
 {
-  "name": "obsidian-light",
-  "displayName": "Obsidian Light",
+  "name": "vault-light",
+  "displayName": "Vault Light",
   "description": "Wikilinks, backlinks, and semantic-search bridge for Obsidian-style vaults in VSCode.",
   "version": "0.1.1",
   "private": true,
@@ -8,7 +8,7 @@
   "publisher": "yoonholee",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yoonholee/obsidian-light.git"
+    "url": "https://github.com/yoonholee/vault-light.git"
   },
   "engines": {
     "vscode": "^1.85.0"
@@ -22,59 +22,59 @@
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
-      { "command": "obsidianLight.semanticSearch", "title": "Vault: Semantic Search", "category": "Obsidian Light" },
-      { "command": "obsidianLight.insertWikilink", "title": "Vault: Insert Wikilink", "category": "Obsidian Light" },
-      { "command": "obsidianLight.relatedNotes", "title": "Vault: Show Related Notes", "category": "Obsidian Light" },
-      { "command": "obsidianLight.openDailyNote", "title": "Vault: Open Today's Daily Note", "category": "Obsidian Light" },
-      { "command": "obsidianLight.openRandomNote", "title": "Vault: Open Random Note", "category": "Obsidian Light" },
-      { "command": "obsidianLight.regenerateCopilotInstructions", "title": "Vault: Regenerate Copilot Instructions", "category": "Obsidian Light" },
-      { "command": "obsidianLight.preloadNeighbors", "title": "Vault: Preload Wikilink Neighbors", "category": "Obsidian Light" },
-      { "command": "obsidianLight.rebuildIndex", "title": "Vault: Rebuild Workspace Index", "category": "Obsidian Light" }
+      { "command": "vaultLight.semanticSearch", "title": "Vault: Semantic Search", "category": "Vault Light" },
+      { "command": "vaultLight.insertWikilink", "title": "Vault: Insert Wikilink", "category": "Vault Light" },
+      { "command": "vaultLight.relatedNotes", "title": "Vault: Show Related Notes", "category": "Vault Light" },
+      { "command": "vaultLight.openDailyNote", "title": "Vault: Open Today's Daily Note", "category": "Vault Light" },
+      { "command": "vaultLight.openRandomNote", "title": "Vault: Open Random Note", "category": "Vault Light" },
+      { "command": "vaultLight.regenerateCopilotInstructions", "title": "Vault: Regenerate Copilot Instructions", "category": "Vault Light" },
+      { "command": "vaultLight.preloadNeighbors", "title": "Vault: Preload Wikilink Neighbors", "category": "Vault Light" },
+      { "command": "vaultLight.rebuildIndex", "title": "Vault: Rebuild Workspace Index", "category": "Vault Light" }
     ],
     "configuration": {
-      "title": "Obsidian Light",
+      "title": "Vault Light",
       "properties": {
-        "obsidianLight.vsPath": {
+        "vaultLight.vsPath": {
           "type": "string",
           "default": "vs",
           "description": "Path to the `vs` semantic-search CLI. Resolved against $PATH."
         },
-        "obsidianLight.vsTimeoutMs": {
+        "vaultLight.vsTimeoutMs": {
           "type": "number",
           "default": 5000,
           "description": "Hard timeout for any `vs` invocation, in milliseconds."
         },
-        "obsidianLight.dailyNotesFolder": {
+        "vaultLight.dailyNotesFolder": {
           "type": "string",
           "default": "Daily",
           "description": "Folder under the vault root where daily notes are created."
         },
-        "obsidianLight.dailyNoteTemplate": {
+        "vaultLight.dailyNoteTemplate": {
           "type": "string",
           "default": "# {date}\n\n",
           "description": "Template for new daily notes. Placeholders: {date}, {iso}, {weekday}."
         },
-        "obsidianLight.copilotBooster.enabled": {
+        "vaultLight.copilotBooster.enabled": {
           "type": "boolean",
           "default": false,
           "description": "EXPERIMENTAL: silently load wikilink neighbors of the active file into workspace.textDocuments so Copilot has them as context. Off by default; unclear whether Copilot's inline-completion heuristic actually reads silent-loaded documents. Use workspace.openTextDocument under the hood (no UI changes)."
         },
-        "obsidianLight.copilotBooster.maxNeighbors": {
+        "vaultLight.copilotBooster.maxNeighbors": {
           "type": "number",
           "default": 5,
           "description": "Maximum number of neighbor files to open as preview tabs per active file."
         },
-        "obsidianLight.copilotBooster.depth": {
+        "vaultLight.copilotBooster.depth": {
           "type": "number",
           "default": 1,
           "description": "Traversal depth for neighbor preloading. 1 = direct wikilinks only."
         },
-        "obsidianLight.hover.augmentWithVs": {
+        "vaultLight.hover.augmentWithVs": {
           "type": "boolean",
           "default": true,
           "description": "Append top-3 vs semantic neighbors to wikilink hover popups."
         },
-        "obsidianLight.ignorePatterns": {
+        "vaultLight.ignorePatterns": {
           "type": "array",
           "items": { "type": "string" },
           "default": [
@@ -89,10 +89,10 @@
           ],
           "description": "Glob patterns excluded from the workspace index. Also reads .gitignore and .ignore at vault root."
         },
-        "obsidianLight.perfLog": {
+        "vaultLight.perfLog": {
           "type": "boolean",
           "default": true,
-          "description": "Log timings for hot paths to the Obsidian Light output channel."
+          "description": "Log timings for hot paths to the Vault Light output channel."
         }
       }
     },
