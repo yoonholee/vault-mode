@@ -4,7 +4,6 @@
   "description": "Opinionated companion for Obsidian-style vaults: wikilinks, backlinks, daily notes, a styled Markdown preview, and an optional semantic-search bridge.",
   "version": "0.2.0",
   "icon": "icon.png",
-  "private": true,
   "license": "MIT",
   "publisher": "yoonholee",
   "repository": {
