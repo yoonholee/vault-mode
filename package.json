@@ -126,7 +126,7 @@
     "lint": "eslint src --ext ts && prettier --check src test",
     "lint:fix": "eslint src --ext ts --fix && prettier --write src test",
     "typecheck": "tsc --noEmit",
-    "bench": "node --experimental-vm-modules ./scripts/bench-all.mjs"
+    "bench": "node ./scripts/bench-all.mjs"
   },
   "devDependencies": {
     "@types/markdown-it": "^14.1.2",

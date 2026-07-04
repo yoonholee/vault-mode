@@ -37,21 +37,29 @@ export class WorkspaceIndex {
       // Always add to resolver (stem map). Parsing may fail; that's OK.
       this.resolver.add(this.toRel(abs));
     }
-    for (const abs of files) {
-      try {
-        const text = await this.fs.readFile(abs);
-        const links = parseWikilinks(text);
-        const outgoing: OutgoingLink[] = links.map((l) => ({
-          target: l.target,
-          line: l.line,
-          col: l.col,
-        }));
-        this.outgoing.set(abs, outgoing);
-        this.backlinks.recordOutgoing(abs, outgoing);
-      } catch {
-        // Skip unreadable files; resolver still has the stem.
+    // Read+parse with bounded concurrency: reads are I/O-bound and serial
+    // awaiting was the dominant activation cost (see scripts/bench-all.mjs).
+    const CONCURRENCY = 32;
+    let next = 0;
+    const worker = async () => {
+      while (next < files.length) {
+        const abs = files[next++];
+        try {
+          const text = await this.fs.readFile(abs);
+          const links = parseWikilinks(text);
+          const outgoing: OutgoingLink[] = links.map((l) => ({
+            target: l.target,
+            line: l.line,
+            col: l.col,
+          }));
+          this.outgoing.set(abs, outgoing);
+          this.backlinks.recordOutgoing(abs, outgoing);
+        } catch {
+          // Skip unreadable files; resolver still has the stem.
+        }
       }
-    }
+    };
+    await Promise.all(Array.from({ length: Math.min(CONCURRENCY, files.length) }, worker));
     return { files: files.length, durationMs: performance.now() - t0 };
   }
 

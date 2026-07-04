@@ -21,6 +21,9 @@ export interface Wikilink {
 const WIKILINK_REGEX = /(!?)\[\[([^[\]]+?)\]\]/g;
 
 export function parseWikilinks(source: string): Wikilink[] {
+  // Fast path: no [[ anywhere means the regex cannot match; skip all allocation.
+  if (!source.includes("[[")) return [];
+
   const out: Wikilink[] = [];
   const lines = source.split("\n");
 
@@ -30,55 +33,67 @@ export function parseWikilinks(source: string): Wikilink[] {
     lineStarts.push(lineStarts[i] + lines[i].length + 1); // +1 for the \n
   }
 
+  // Fast path: fences need ``` or ~~~, code spans need `. Absent both, skip the
+  // mask passes; indexing a zero-length mask yields undefined (falsy), same result.
+  const hasBacktick = source.includes("`");
+  const hasTildeFence = source.includes("~~~");
+  const EMPTY = new Uint8Array(0);
+
   // First pass: mark byte ranges that are inside fenced code blocks
-  const fenceMask = new Uint8Array(source.length);
-  let inFence = false;
-  let fenceChar: "`" | "~" | null = null;
-  let cursor = 0;
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const trimmed = line.trimStart();
-    const m = trimmed.match(/^(```+|~~~+)/);
-    if (m) {
-      const ch = m[1][0] as "`" | "~";
-      if (!inFence) {
-        inFence = true;
-        fenceChar = ch;
-      } else if (fenceChar === ch) {
-        inFence = false;
-        fenceChar = null;
+  let fenceMask = EMPTY;
+  if (hasBacktick || hasTildeFence) {
+    fenceMask = new Uint8Array(source.length);
+    let inFence = false;
+    let fenceChar: "`" | "~" | null = null;
+    let cursor = 0;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const trimmed = line.trimStart();
+      const m = trimmed.match(/^(```+|~~~+)/);
+      if (m) {
+        const ch = m[1][0] as "`" | "~";
+        if (!inFence) {
+          inFence = true;
+          fenceChar = ch;
+        } else if (fenceChar === ch) {
+          inFence = false;
+          fenceChar = null;
+        }
       }
+      if (inFence) {
+        // Mark the entire line plus newline as in-fence
+        const lineEnd = cursor + line.length + (i < lines.length - 1 ? 1 : 0);
+        for (let j = cursor; j < lineEnd; j++) fenceMask[j] = 1;
+      }
+      cursor += line.length + 1;
     }
-    if (inFence) {
-      // Mark the entire line plus newline as in-fence
-      const lineEnd = cursor + line.length + (i < lines.length - 1 ? 1 : 0);
-      for (let j = cursor; j < lineEnd; j++) fenceMask[j] = 1;
-    }
-    cursor += line.length + 1;
   }
 
   // Second pass: mark inline code spans
   // Approach: walk each line outside fences, toggle on/off at unescaped backticks
-  cursor = 0;
-  const codeSpanMask = new Uint8Array(source.length);
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    // Skip whole-line scanning if line is in a fence
-    if (cursor < source.length && fenceMask[cursor]) {
-      cursor += line.length + 1;
-      continue;
-    }
-    let inCode = false;
-    for (let j = 0; j < line.length; j++) {
-      const ch = line[j];
-      if (ch === "`") {
-        inCode = !inCode;
-        codeSpanMask[cursor + j] = 1;
+  let codeSpanMask = EMPTY;
+  if (hasBacktick) {
+    codeSpanMask = new Uint8Array(source.length);
+    let cursor = 0;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      // Skip whole-line scanning if line is in a fence
+      if (cursor < source.length && fenceMask[cursor]) {
+        cursor += line.length + 1;
         continue;
       }
-      if (inCode) codeSpanMask[cursor + j] = 1;
+      let inCode = false;
+      for (let j = 0; j < line.length; j++) {
+        const ch = line[j];
+        if (ch === "`") {
+          inCode = !inCode;
+          codeSpanMask[cursor + j] = 1;
+          continue;
+        }
+        if (inCode) codeSpanMask[cursor + j] = 1;
+      }
+      cursor += line.length + 1;
     }
-    cursor += line.length + 1;
   }
 
   // Third pass: extract wikilinks, skipping fenced and inline-code regions
