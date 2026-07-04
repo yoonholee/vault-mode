@@ -1,6 +1,6 @@
 # Plan
 
-Status: v0.2.0 built, tested, installed locally. Awaiting: GitHub repo creation + push, vsce publish (needs interactive `vsce login yoonholee`), vscode-markdown-css archive.
+Status: v0.3.0 shipped (GitHub release + CI green + installed in VS Code and Cursor). Only vsce Marketplace publish remains (needs interactive `vsce login yoonholee`).
 
 ## Done (2026-07-04)
 
@@ -13,14 +13,10 @@ Status: v0.2.0 built, tested, installed locally. Awaiting: GitHub repo creation 
 
 ## Remaining
 
-- [ ] `private: true` → remove, as the literal last step before `vsce publish`.
-- [ ] Create public github.com/yoonholee/vault-mode, push (README image links depend on it).
-- [ ] `vsce publish` (user-interactive login) + optionally ovsx.
-- [ ] Archive vscode-markdown-css on GitHub with pointer README; keep local clone until confident.
-- [ ] Preview styling eyeball in real VS Code (screen-recording permission was missing; blocked mid-session).
+- [ ] `vsce publish` (user-interactive login). Everything else shipped: repo public, v0.2.0 + v0.3.0 releases, CI (typecheck/lint/unit/integration/package) green, vscode-markdown-css archived.
+- [ ] Preview styling + callout eyeball in the running editor (extension behavior is covered by the integration suite; the CSS pixels still deserve one human look).
 
 ## Open questions / deferred
 
-- Callouts (`> [!note]`) render literal in the VS Code preview; now fixable in our markdown-it plugin (see agent_notes/css-backlog.md, merged from vscode-markdown-css).
-- copilotBooster still unverified whether Copilot reads silently-loaded docs (friction.md 2026-05-23).
-- depth>1 neighbor traversal reserved but unimplemented.
+- v0.3.0 closed the old list: callouts render in preview (calloutPlugin), copilotBooster deleted (no-op, see friction.md resolution), depth config gone with it.
+- Rename propagation only sees in-editor renames (onDidRenameFiles excludes fs-level renames by design).
