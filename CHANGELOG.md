@@ -2,9 +2,9 @@
 
 ## 0.2.0
 
-First public release, under the new name **Vault Light** (previously `obsidian-light`, personal-install only).
+First public release, under the new name **Vault Mode** (previously a personal-install-only extension).
 
-- Renamed: extension id `vault-light`, command ids `vaultLight.*`, config keys `vaultLight.*`.
+- Renamed: extension id `vault-mode`, command ids `vaultMode.*`, config keys `vaultMode.*`.
 - Merged in `preview-to-side`: `Vault: Open Markdown Preview to Side` plus an editor-title button for markdown and markdown-adjacent languages (prompt/instructions/chatagent/skill).
 - Merged in `vscode-markdown-css`: the preview is now styled by bundled house-style CSS via `markdown.previewStyles` (light, serif headings, hidden frontmatter table). No settings wiring needed; the CSS source and render harness live in `styles/`.
 - `vs` semantic search degrades gracefully: when the binary is not on PATH the features disable with an informational message instead of raw spawn errors.

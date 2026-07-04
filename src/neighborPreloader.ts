@@ -3,7 +3,7 @@
 //
 // Uses workspace.openTextDocument (silent, no tab, no focus change) rather
 // than showTextDocument. Whether this actually feeds Copilot's inline-
-// completion context is UNVERIFIED — Copilot's neighboring-tabs heuristic
+// completion context is UNVERIFIED: Copilot's neighboring-tabs heuristic
 // may key off window.tabGroups instead. This feature is opt-in (default off)
 // until we measure benefit. See SPEC.md open questions.
 //

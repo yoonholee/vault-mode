@@ -136,7 +136,7 @@ describe("parseWikilinks", () => {
     // Triple-open is not a valid wikilink; treat conservatively (parse the inner valid one)
     const links = parseWikilinks("[[[X]]");
     // We accept either: 0 links (strict) or 1 link with target "X". Pick strict to avoid false positives.
-    // Adjust if Obsidian behavior says otherwise.
+    // Adjust if real-vault behavior says otherwise.
     expect(links).toHaveLength(0);
   });
 

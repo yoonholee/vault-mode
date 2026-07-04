@@ -1,4 +1,4 @@
-// Vault Light - extension entry point.
+// Vault Mode - extension entry point.
 //
 // On activate: pick the first workspace folder as the vault, build the
 // WorkspaceIndex, wire providers/commands/preloader, install a FS watcher.
@@ -26,18 +26,18 @@ let globalOutput: vscode.OutputChannel | undefined;
 
 export async function activate(ctx: vscode.ExtensionContext) {
   const t0 = performance.now();
-  const output = vscode.window.createOutputChannel("Vault Light");
+  const output = vscode.window.createOutputChannel("Vault Mode");
   globalOutput = output;
   ctx.subscriptions.push(output);
 
-  const cfg = vscode.workspace.getConfiguration("vaultLight");
+  const cfg = vscode.workspace.getConfiguration("vaultMode");
   const perfLog = new PerfLogger((line) => output.appendLine(line), {
     enabled: cfg.get<boolean>("perfLog") ?? true,
   });
 
   const folders = vscode.workspace.workspaceFolders;
   if (!folders || folders.length === 0) {
-    output.appendLine("No workspace folder; Vault Light idle.");
+    output.appendLine("No workspace folder; Vault Mode idle.");
     return undefined;
   }
   const vaultRoot = folders[0].uri.fsPath;
@@ -125,8 +125,8 @@ export async function activate(ctx: vscode.ExtensionContext) {
   // React to config changes
   ctx.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
-      if (!e.affectsConfiguration("vaultLight")) return;
-      const cfg2 = vscode.workspace.getConfiguration("vaultLight");
+      if (!e.affectsConfiguration("vaultMode")) return;
+      const cfg2 = vscode.workspace.getConfiguration("vaultMode");
       perfLog.setEnabled(cfg2.get<boolean>("perfLog") ?? true);
       preloader.setOptions({
         enabled: cfg2.get<boolean>("copilotBooster.enabled") ?? false,
@@ -136,7 +136,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
     }),
   );
 
-  output.appendLine(`Vault Light activated in ${Math.round(performance.now() - t0)}ms`);
+  output.appendLine(`Vault Mode activated in ${Math.round(performance.now() - t0)}ms`);
 
   // Return public API: VSCode markdown preview calls extendMarkdownIt to
   // inject our wikilink plugin.

@@ -16,7 +16,7 @@ export function generateCopilotInstructions(input: CopilotInstructionsInput): st
   lines.push(`# Copilot instructions for ${vaultName}`);
   lines.push("");
   lines.push(
-    "This workspace is an Obsidian-style markdown vault. Apply these conventions when generating or completing markdown content.",
+    "This workspace is a markdown vault of wikilink-connected notes. Apply these conventions when generating or completing markdown content.",
   );
   lines.push("");
 

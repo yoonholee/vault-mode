@@ -1,4 +1,4 @@
-// Pure-function parser for Obsidian-style wikilinks.
+// Pure-function parser for wikilinks.
 //
 // Recognizes [[target]], [[target|alias]], [[target#anchor]],
 // [[target#anchor|alias]], and embed variant ![[target]].

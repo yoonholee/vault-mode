@@ -4,7 +4,7 @@ Status: v0.2.0 built, tested, installed locally. Awaiting: GitHub repo creation 
 
 ## Done (2026-07-04)
 
-- Renamed obsidian-light → vault-light (id, commands, config, folder).
+- Renamed from the personal extension (id, commands, config, folder).
 - Merged preview-to-side (command + editor-title button) and vscode-markdown-css (styles/ + render harness, shipped via markdown.previewStyles).
 - vs graceful degradation (vsBinaryAvailable probe, tested + mutation-checked).
 - Publish prep: icon, Marketplace README, CHANGELOG, .vscodeignore audit (VSIX = 12 files, clean), personal-info grep clean.
@@ -14,7 +14,7 @@ Status: v0.2.0 built, tested, installed locally. Awaiting: GitHub repo creation 
 ## Remaining
 
 - [ ] `private: true` → remove, as the literal last step before `vsce publish`.
-- [ ] Create public github.com/yoonholee/vault-light, push (README image links depend on it).
+- [ ] Create public github.com/yoonholee/vault-mode, push (README image links depend on it).
 - [ ] `vsce publish` (user-interactive login) + optionally ovsx.
 - [ ] Archive vscode-markdown-css on GitHub with pointer README; keep local clone until confident.
 - [ ] Preview styling eyeball in real VS Code (screen-recording permission was missing; blocked mid-session).

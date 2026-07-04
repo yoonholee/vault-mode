@@ -16,7 +16,7 @@ const RUNS = Number(process.argv[3] || 5);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Bundle the real TS sources (no vscode imports in these modules).
-const tmp = path.join(tmpdir(), `vault-light-bench-${Date.now()}.cjs`);
+const tmp = path.join(tmpdir(), `vault-mode-bench-${Date.now()}.cjs`);
 await build({
   entryPoints: [path.join(__dirname, "..", "src", "workspaceIndex.ts")],
   bundle: true,
@@ -26,7 +26,7 @@ await build({
   logLevel: "silent",
 });
 const { WorkspaceIndex } = await import(tmp);
-const parserTmp = path.join(tmpdir(), `vault-light-bench-parser-${Date.now()}.cjs`);
+const parserTmp = path.join(tmpdir(), `vault-mode-bench-parser-${Date.now()}.cjs`);
 await build({
   entryPoints: [path.join(__dirname, "..", "src", "wikilinkParser.ts")],
   bundle: true, format: "cjs", platform: "node", outfile: parserTmp, logLevel: "silent",

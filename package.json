@@ -1,20 +1,31 @@
 {
-  "name": "vault-light",
-  "displayName": "Vault Light",
-  "description": "Opinionated companion for Obsidian-style vaults: wikilinks, backlinks, daily notes, a styled Markdown preview, and an optional semantic-search bridge.",
+  "name": "vault-mode",
+  "displayName": "Vault Mode",
+  "description": "Wikilinks, backlinks, daily notes, a styled Markdown preview, and optional semantic search for markdown vaults. For VS Code, Cursor, and compatible editors.",
   "version": "0.2.0",
   "icon": "icon.png",
   "license": "MIT",
   "publisher": "yoonholee",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yoonholee/vault-light.git"
+    "url": "https://github.com/yoonholee/vault-mode.git"
   },
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": ["Notebooks", "Other"],
-  "keywords": ["obsidian", "wikilink", "backlinks", "markdown", "semantic search"],
+  "keywords": [
+    "wikilinks",
+    "backlinks",
+    "second brain",
+    "zettelkasten",
+    "knowledge base",
+    "PKM",
+    "notes",
+    "daily notes",
+    "bidirectional links",
+    "markdown"
+  ],
   "activationEvents": [
     "onLanguage:markdown",
     "workspaceContains:**/*.md"
@@ -22,69 +33,69 @@
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
-      { "command": "vaultLight.semanticSearch", "title": "Vault: Semantic Search", "category": "Vault Light" },
-      { "command": "vaultLight.insertWikilink", "title": "Vault: Insert Wikilink", "category": "Vault Light" },
-      { "command": "vaultLight.relatedNotes", "title": "Vault: Show Related Notes", "category": "Vault Light" },
-      { "command": "vaultLight.openDailyNote", "title": "Vault: Open Today's Daily Note", "category": "Vault Light" },
-      { "command": "vaultLight.openRandomNote", "title": "Vault: Open Random Note", "category": "Vault Light" },
-      { "command": "vaultLight.regenerateCopilotInstructions", "title": "Vault: Regenerate Copilot Instructions", "category": "Vault Light" },
-      { "command": "vaultLight.preloadNeighbors", "title": "Vault: Preload Wikilink Neighbors", "category": "Vault Light" },
-      { "command": "vaultLight.rebuildIndex", "title": "Vault: Rebuild Workspace Index", "category": "Vault Light" },
-      { "command": "vaultLight.previewToSide", "title": "Vault: Open Markdown Preview to Side", "category": "Vault Light", "icon": "$(layout-sidebar-right)" }
+      { "command": "vaultMode.semanticSearch", "title": "Vault: Semantic Search", "category": "Vault Mode" },
+      { "command": "vaultMode.insertWikilink", "title": "Vault: Insert Wikilink", "category": "Vault Mode" },
+      { "command": "vaultMode.relatedNotes", "title": "Vault: Show Related Notes", "category": "Vault Mode" },
+      { "command": "vaultMode.openDailyNote", "title": "Vault: Open Today's Daily Note", "category": "Vault Mode" },
+      { "command": "vaultMode.openRandomNote", "title": "Vault: Open Random Note", "category": "Vault Mode" },
+      { "command": "vaultMode.regenerateCopilotInstructions", "title": "Vault: Regenerate Copilot Instructions", "category": "Vault Mode" },
+      { "command": "vaultMode.preloadNeighbors", "title": "Vault: Preload Wikilink Neighbors", "category": "Vault Mode" },
+      { "command": "vaultMode.rebuildIndex", "title": "Vault: Rebuild Workspace Index", "category": "Vault Mode" },
+      { "command": "vaultMode.previewToSide", "title": "Vault: Open Markdown Preview to Side", "category": "Vault Mode", "icon": "$(layout-sidebar-right)" }
     ],
     "menus": {
       "editor/title": [
         {
-          "command": "vaultLight.previewToSide",
+          "command": "vaultMode.previewToSide",
           "group": "navigation",
           "when": "resourceLangId == markdown || resourceLangId == prompt || resourceLangId == instructions || resourceLangId == chatagent || resourceLangId == skill"
         }
       ]
     },
     "configuration": {
-      "title": "Vault Light",
+      "title": "Vault Mode",
       "properties": {
-        "vaultLight.vsPath": {
+        "vaultMode.vsPath": {
           "type": "string",
           "default": "vs",
           "description": "Path to the `vs` semantic-search CLI. Resolved against $PATH."
         },
-        "vaultLight.vsTimeoutMs": {
+        "vaultMode.vsTimeoutMs": {
           "type": "number",
           "default": 5000,
           "description": "Hard timeout for any `vs` invocation, in milliseconds."
         },
-        "vaultLight.dailyNotesFolder": {
+        "vaultMode.dailyNotesFolder": {
           "type": "string",
           "default": "Daily",
           "description": "Folder under the vault root where daily notes are created."
         },
-        "vaultLight.dailyNoteTemplate": {
+        "vaultMode.dailyNoteTemplate": {
           "type": "string",
           "default": "# {date}\n\n",
           "description": "Template for new daily notes. Placeholders: {date}, {iso}, {weekday}."
         },
-        "vaultLight.copilotBooster.enabled": {
+        "vaultMode.copilotBooster.enabled": {
           "type": "boolean",
           "default": false,
           "description": "EXPERIMENTAL: silently load wikilink neighbors of the active file into workspace.textDocuments so Copilot has them as context. Off by default; unclear whether Copilot's inline-completion heuristic actually reads silent-loaded documents. Use workspace.openTextDocument under the hood (no UI changes)."
         },
-        "vaultLight.copilotBooster.maxNeighbors": {
+        "vaultMode.copilotBooster.maxNeighbors": {
           "type": "number",
           "default": 5,
           "description": "Maximum number of neighbor files to open as preview tabs per active file."
         },
-        "vaultLight.copilotBooster.depth": {
+        "vaultMode.copilotBooster.depth": {
           "type": "number",
           "default": 1,
           "description": "Traversal depth for neighbor preloading. 1 = direct wikilinks only."
         },
-        "vaultLight.hover.augmentWithVs": {
+        "vaultMode.hover.augmentWithVs": {
           "type": "boolean",
           "default": true,
           "description": "Append top-3 vs semantic neighbors to wikilink hover popups."
         },
-        "vaultLight.ignorePatterns": {
+        "vaultMode.ignorePatterns": {
           "type": "array",
           "items": { "type": "string" },
           "default": [
@@ -98,10 +109,10 @@
           ],
           "description": "Glob patterns excluded from the workspace index. Also reads .gitignore and .ignore at vault root."
         },
-        "vaultLight.perfLog": {
+        "vaultMode.perfLog": {
           "type": "boolean",
           "default": true,
-          "description": "Log timings for hot paths to the Vault Light output channel."
+          "description": "Log timings for hot paths to the Vault Mode output channel."
         }
       }
     },

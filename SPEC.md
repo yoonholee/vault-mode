@@ -1,17 +1,17 @@
-# Vault Light — Spec
+# Vault Mode: Spec
 
 ## Status: approved
 
-Yoonho greenlit on 2026-05-23 with these specifics: don't fork Foam, use marksman + thin extension; install MarkTone-equivalents alongside; vs integration; hover provider; Copilot context booster via preview-tab preloader; project name "Vault Light"; write tests up front; measure everything; iterate.
+Yoonho greenlit on 2026-05-23 with these specifics: don't fork Foam, use marksman + thin extension; install MarkTone-equivalents alongside; vs integration; hover provider; Copilot context booster via preview-tab preloader; project name "Vault Mode"; write tests up front; measure everything; iterate.
 
 ## Goal
 
-A VSCode extension that gives a vault editor inside VSCode the Obsidian-essential affordances: clickable wikilink rendering in preview, syntax highlighting, completions / backlinks / hover (via marksman LSP), bridge to the user's `vs` semantic search CLI, and a Copilot context booster. Personal-first; possibly publish later.
+A VSCode extension that gives a vault editor inside VSCode the essential vault affordances: clickable wikilink rendering in preview, syntax highlighting, completions / backlinks / hover (via marksman LSP), bridge to the user's `vs` semantic search CLI, and a Copilot context booster. Personal-first; possibly publish later.
 
 ## Non-goals
 
 - Re-implementing markdown editing utilities that already exist: GFM tables, list formatting, lint. Defer to Markdown All in One, Prettier, markdownlint (recommended in README, not bundled).
-- Graph view (Obsidian has this).
+- Graph view.
 - Multi-vault support in v0.
 - Embedded image / video / canvas / drawing UIs.
 - Re-implementing wikilink parsing or link-graph indexing (marksman owns that).
@@ -65,7 +65,7 @@ Self-contained TypeScript extension. No external LSP. (Original plan was marksma
 | Syntax injection | TextMate grammar JSON | Injects into `text.html.markdown` so wikilinks get distinct token scope and color. |
 | VsClient | TS service | Wraps `vs` CLI: timeout, stderr capture, parses `--paths-only` output. |
 | Providers | TS | `DefinitionProvider`, `HoverProvider`, `CompletionProvider`, `ReferenceProvider` (backlinks) wired to the index. `HoverProvider` augments with top-3 `vs` neighbors. |
-| Commands | TS | `vaultLight.semanticSearch`, `.insertWikilink`, `.relatedNotes`, `.openDailyNote`, `.openRandomNote`, `.regenerateCopilotInstructions`. |
+| Commands | TS | `vaultMode.semanticSearch`, `.insertWikilink`, `.relatedNotes`, `.openDailyNote`, `.openRandomNote`, `.regenerateCopilotInstructions`. |
 | NeighborPreloader | TS | On active editor change in markdown: extract wikilinks, open each target as a preview tab so Copilot reads their content. Configurable. |
 | CopilotInstructionsGen | TS command | Generate `.github/copilot-instructions.md` from vault structure + `CLAUDE.md`. |
 
@@ -94,7 +94,7 @@ Self-contained TypeScript extension. No external LSP. (Original plan was marksma
 - **Unit tests (vitest):** wikilink parser, vs-result formatter, neighbor selector, copilot-instructions generator. Pure functions only.
 - **Integration tests (@vscode/test-electron):** extension activates, commands registered, hover provider returns expected content for a sample workspace, preview rendering integration.
 - **Smoke tests (manual + scripted):**
-  - Marksman against the actual vault: 20 sampled wikilinks, verify resolution matches Obsidian.
+  - Marksman against the actual vault: 20 sampled wikilinks, verify resolution matches vault conventions.
   - vs CLI invocation: real call returns results in expected format.
   - Preview-tab preloader: open a real note, confirm neighbors open as preview tabs.
 - **Performance bench:** scripts/bench-*.ts, run on every meaningful change. Regression gate: any target metric worsens by >20%, fail.
@@ -103,11 +103,11 @@ Self-contained TypeScript extension. No external LSP. (Original plan was marksma
 
 - Does `markdown-it-wikilinks` (the popular plugin) handle `[[X#header]]` and `![[X]]` embeds correctly, or do we need a custom plugin? Verify by smoke test before committing.
 - Does the preview-tab preloader actually improve Copilot completions? Need a manual A/B on a real coding task before keeping the feature.
-- Does marksman's title-vs-file-stem resolution match Obsidian for the vault? Smoke test will answer.
+- Does marksman's title-vs-file-stem resolution match vault conventions? Smoke test will answer.
 
 ## Distribution
 
-Personal-first. Repo at `~/repos/vscode-extensions/vault-light`. Install via `vsce package` + manual `code --install-extension`. Marketplace publication deferred until v0 has been used for 2+ weeks and proven better than current setup.
+Personal-first. Repo at `~/repos/vscode-extensions/vault-mode`. Install via `vsce package` + manual `code --install-extension`. Marketplace publication deferred until v0 has been used for 2+ weeks and proven better than current setup.
 
 ## License
 

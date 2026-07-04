@@ -1,8 +1,9 @@
-# Vault Light
+# Vault Mode
 
-An opinionated companion for Obsidian-style vaults in VS Code.
-Wikilinks that actually work (preview rendering, jump-to-definition, backlinks, completion), daily notes, a house-styled Markdown preview, and an optional semantic-search bridge.
-No external LSP, no server, no sync: everything runs in-extension against an in-memory index of your workspace.
+The extension I use to edit my markdown vault: a folder of notes connected by `[[wikilinks]]`.
+Wikilinks that work (preview rendering, jump-to-definition, backlinks, completion), daily notes, a styled Markdown preview, and an optional semantic-search bridge.
+Works in VS Code, Cursor, and other VS Code-based editors.
+No external LSP, no server, no sync: an in-memory index of the workspace, nothing else.
 
 ![styled preview](styles/preview.png)
 
@@ -18,29 +19,32 @@ No external LSP, no server, no sync: everything runs in-extension against an in-
 - **Copilot context booster (EXPERIMENTAL, off by default).** Silently loads wikilink neighbors of the active file into VS Code's document cache so Copilot has them as context. Unverified whether Copilot's inline-completion heuristic reads silently-loaded documents; enable and A/B if curious.
 - **Copilot instructions generator.** `Vault: Regenerate Copilot Instructions` writes `.github/copilot-instructions.md` from your vault structure.
 
-## Why "opinionated"
+## Opinionated, on purpose
 
-Vault Light bundles the choices, so a vault works out of the box: the preview is forced light and styled, the frontmatter table is hidden, wikilinks resolve by stem against the whole workspace, daily notes go in `Daily/`.
-Most of it is configurable, but the defaults are the product.
+This is a personal tool, published as-is.
+The defaults encode how my vault works: preview forced light and styled, frontmatter table hidden, wikilinks resolved by stem across the whole workspace, daily notes in `Daily/`.
+Most of it is configurable, but the defaults are the point.
 
 ## Install
 
-From the Marketplace: search **Vault Light**, or `code --install-extension yoonholee.vault-light`.
+VS Code: search **Vault Mode** in the Marketplace, or `code --install-extension yoonholee.vault-mode`.
+
+Cursor / VSCodium / other forks: grab the `.vsix` from [Releases](https://github.com/yoonholee/vault-mode/releases), then `cursor --install-extension vault-mode-*.vsix`.
 
 From source:
 
 ```sh
-git clone https://github.com/yoonholee/vault-light && cd vault-light
+git clone https://github.com/yoonholee/vault-mode && cd vault-mode
 npm install && npm run build
 npx vsce package
-code --install-extension vault-light-*.vsix
+code --install-extension vault-mode-*.vsix
 ```
 
 Recommended sidecar extensions (deliberately not bundled): `yzhang.markdown-all-in-one`, `esbenp.prettier-vscode`, `davidanson.vscode-markdownlint`.
 
 ## The `vs` semantic-search bridge
 
-The search features shell out to an external CLI (`vaultLight.vsPath`, default `vs`).
+The search features shell out to an external CLI (`vaultMode.vsPath`, default `vs`).
 Any executable with this contract works:
 
 ```
@@ -49,40 +53,42 @@ vs --paths-only [--no-update] [--limit N] [--weight W] [--lexical-only] <query>
 
 It must print newline-separated absolute paths of matching notes to stdout and exit 0.
 The reference implementation is a personal embeddings-based vault-search script; bring your own (a thin wrapper around `rg -l`, a vector DB, whatever).
-If the binary is not on PATH at activation, the vs-dependent features disable with a note in the "Vault Light" output channel.
+If the binary is not on PATH at activation, the vs-dependent features disable with a note in the "Vault Mode" output channel.
 
 ## Configuration
 
 | Setting | Default | What |
 |---|---|---|
-| `vaultLight.vsPath` | `vs` | Path to the search CLI |
-| `vaultLight.vsTimeoutMs` | `5000` | Hard timeout for any search invocation |
-| `vaultLight.dailyNotesFolder` | `Daily` | Folder under vault root for daily notes |
-| `vaultLight.dailyNoteTemplate` | `# {date}\n\n` | Template (placeholders: `{date}`, `{iso}`, `{weekday}`) |
-| `vaultLight.copilotBooster.enabled` | `false` | EXPERIMENTAL: silent neighbor load |
-| `vaultLight.copilotBooster.maxNeighbors` | `5` | Max neighbors per active file |
-| `vaultLight.copilotBooster.depth` | `1` | Traversal depth (reserved; only depth=1 implemented) |
-| `vaultLight.hover.augmentWithVs` | `true` | Append semantic neighbors to wikilink hover |
-| `vaultLight.ignorePatterns` | (see settings) | Globs excluded from the workspace index |
-| `vaultLight.perfLog` | `true` | Log per-operation timings to the output channel |
+| `vaultMode.vsPath` | `vs` | Path to the search CLI |
+| `vaultMode.vsTimeoutMs` | `5000` | Hard timeout for any search invocation |
+| `vaultMode.dailyNotesFolder` | `Daily` | Folder under vault root for daily notes |
+| `vaultMode.dailyNoteTemplate` | `# {date}\n\n` | Template (placeholders: `{date}`, `{iso}`, `{weekday}`) |
+| `vaultMode.copilotBooster.enabled` | `false` | EXPERIMENTAL: silent neighbor load |
+| `vaultMode.copilotBooster.maxNeighbors` | `5` | Max neighbors per active file |
+| `vaultMode.copilotBooster.depth` | `1` | Traversal depth (reserved; only depth=1 implemented) |
+| `vaultMode.hover.augmentWithVs` | `true` | Append semantic neighbors to wikilink hover |
+| `vaultMode.ignorePatterns` | (see settings) | Globs excluded from the workspace index |
+| `vaultMode.perfLog` | `true` | Log per-operation timings to the output channel |
 
 ## Commands
 
 | Command | What |
 |---|---|
-| `vaultLight.semanticSearch` | QuickPick over search results |
-| `vaultLight.insertWikilink` | Search + insert `[[Stem]]` at cursor |
-| `vaultLight.relatedNotes` | Semantic neighbors of the current file |
-| `vaultLight.openDailyNote` | Open / create today's daily note |
-| `vaultLight.openRandomNote` | Open a random vault note |
-| `vaultLight.previewToSide` | Open Markdown preview to the side |
-| `vaultLight.regenerateCopilotInstructions` | Write `.github/copilot-instructions.md` |
-| `vaultLight.preloadNeighbors` | Manually trigger neighbor preload |
-| `vaultLight.rebuildIndex` | Rebuild the wikilink index from scratch |
+| `vaultMode.semanticSearch` | QuickPick over search results |
+| `vaultMode.insertWikilink` | Search + insert `[[Stem]]` at cursor |
+| `vaultMode.relatedNotes` | Semantic neighbors of the current file |
+| `vaultMode.openDailyNote` | Open / create today's daily note |
+| `vaultMode.openRandomNote` | Open a random vault note |
+| `vaultMode.previewToSide` | Open Markdown preview to the side |
+| `vaultMode.regenerateCopilotInstructions` | Write `.github/copilot-instructions.md` |
+| `vaultMode.preloadNeighbors` | Manually trigger neighbor preload |
+| `vaultMode.rebuildIndex` | Rebuild the wikilink index from scratch |
 
 No default keybindings; bind in `keybindings.json` if you want hotkeys.
 
-## Performance (benched on a 2716-file / 18MB vault, `npm run bench`, mean ± σ over 5 runs)
+## Performance
+
+Benched on a 2716-file / 18MB vault (`npm run bench`, mean ± σ over 5 runs).
 
 | Operation | Measured |
 |---|---|
@@ -92,7 +98,7 @@ No default keybindings; bind in `keybindings.json` if you want hotkeys.
 | Backlinks for 2000 targets | 0.6 ± 0.1 ms |
 | Bundle size | ~36KB |
 
-Activation, index build, and hover latencies are logged to the "Vault Light" output channel when `perfLog` is on.
+Activation, index build, and hover latencies are logged to the "Vault Mode" output channel when `perfLog` is on.
 
 ## Architecture (one-paragraph version)
 

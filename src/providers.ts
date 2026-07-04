@@ -104,7 +104,7 @@ export class HoverProvider implements vscode.HoverProvider {
     md.supportHtml = false;
 
     if (!resolved) {
-      md.appendMarkdown(`**\`[[${hit.target}]]\`** — unresolved.\n\n`);
+      md.appendMarkdown(`**\`[[${hit.target}]]\`**: unresolved.\n\n`);
     } else {
       md.appendMarkdown(`**${path.basename(resolved)}**\n\n`);
       try {

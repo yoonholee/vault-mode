@@ -1,6 +1,6 @@
 // Maps wikilink targets to file paths.
 //
-// Lookup is case-insensitive on the stem (matches Obsidian).
+// Lookup is case-insensitive on the stem (the common vault convention).
 // On stem collision, picks shortest path (fewest slashes), then alphabetical.
 // Path-qualified targets (e.g. "subdir/Note") match by suffix path.
 

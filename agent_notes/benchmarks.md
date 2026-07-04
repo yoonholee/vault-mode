@@ -2,7 +2,7 @@
 
 Artifact for perf claims: claim → axis → eval → numbers → repro.
 
-## 2026-07-04 — activation-path optimization (v0.2.0)
+## 2026-07-04: activation-path optimization (v0.2.0)
 
 **Claim:** index build and parsing are the dominant activation costs; both had obvious inefficiencies (serial file reads, unconditional mask allocation in the parser).
 

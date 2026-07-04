@@ -1,14 +1,14 @@
-# styles/ — markdown look, on screen and in print
+# styles/: markdown look, on screen and in print
 
 Single source of truth for how markdown renders in the VS Code preview (screen) and in `md-print` PDFs (print).
-Formerly the standalone `vscode-markdown-css` repo; merged into Vault Light 2026-07-04.
+Formerly the standalone `vscode-markdown-css` repo; merged into Vault Mode 2026-07-04.
 
 ## Files
 
-- `tokens.css` — shared house-style design tokens: palette (~85% black, grayscale, surgical accent red) and font families.
-- `preview.css` — VS Code Markdown preview (screen): force light mode, rem sizes, vertical rhythm, hide the frontmatter table.
-- `print.css` — `md-print` PDF (Chrome): `@page`, pt sizes, page-break control.
-- `render.py` — render/check harness (below). `fixtures/` — markdown corpus it renders.
+- `tokens.css`: shared house-style design tokens: palette (~85% black, grayscale, surgical accent red) and font families.
+- `preview.css`: VS Code Markdown preview (screen): force light mode, rem sizes, vertical rhythm, hide the frontmatter table.
+- `print.css`: `md-print` PDF (Chrome): `@page`, pt sizes, page-break control.
+- `render.py`: render/check harness (below). `fixtures/`: markdown corpus it renders.
 
 `preview.css` and `print.css` both consume `tokens.css`'s `:root` variables.
 Change a color or font in `tokens.css` once and both media update.

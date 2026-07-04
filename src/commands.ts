@@ -24,25 +24,25 @@ export function registerCommands(deps: CommandDeps): void {
   const r = (cmd: string, handler: (...args: unknown[]) => unknown) =>
     context.subscriptions.push(vscode.commands.registerCommand(cmd, handler));
 
-  r("vaultLight.semanticSearch", () => semanticSearch(deps));
-  r("vaultLight.insertWikilink", () => insertWikilink(deps));
-  r("vaultLight.relatedNotes", () => relatedNotes(deps));
-  r("vaultLight.openDailyNote", () => openDailyNote(deps));
-  r("vaultLight.openRandomNote", () => openRandomNote(deps));
-  r("vaultLight.regenerateCopilotInstructions", () => regenerateCopilotInstructions(deps));
-  r("vaultLight.preloadNeighbors", () => {
+  r("vaultMode.semanticSearch", () => semanticSearch(deps));
+  r("vaultMode.insertWikilink", () => insertWikilink(deps));
+  r("vaultMode.relatedNotes", () => relatedNotes(deps));
+  r("vaultMode.openDailyNote", () => openDailyNote(deps));
+  r("vaultMode.openRandomNote", () => openRandomNote(deps));
+  r("vaultMode.regenerateCopilotInstructions", () => regenerateCopilotInstructions(deps));
+  r("vaultMode.preloadNeighbors", () => {
     const ed = vscode.window.activeTextEditor;
     if (ed) return deps.preloader.maybePreload(ed);
     return undefined;
   });
-  r("vaultLight.previewToSide", () => vscode.commands.executeCommand("markdown.showPreviewToSide"));
-  r("vaultLight.rebuildIndex", async () => {
-    const cfg = vscode.workspace.getConfiguration("vaultLight");
+  r("vaultMode.previewToSide", () => vscode.commands.executeCommand("markdown.showPreviewToSide"));
+  r("vaultMode.rebuildIndex", async () => {
+    const cfg = vscode.workspace.getConfiguration("vaultMode");
     const patterns = cfg.get<string[]>("ignorePatterns") ?? [];
     const r = await deps.index.buildAll(patterns);
     deps.log(`rebuildIndex  ${r.durationMs}ms  files=${r.files}`);
     vscode.window.showInformationMessage(
-      `Vault Light: indexed ${r.files} files in ${Math.round(r.durationMs)}ms`,
+      `Vault Mode: indexed ${r.files} files in ${Math.round(r.durationMs)}ms`,
     );
   });
 }
@@ -50,7 +50,7 @@ export function registerCommands(deps: CommandDeps): void {
 async function semanticSearch(deps: CommandDeps): Promise<void> {
   if (!deps.vs) {
     vscode.window.showInformationMessage(
-      "Vault Light: this command needs the optional `vs` semantic-search CLI (not found on PATH). See the README's vs section.",
+      "Vault Mode: this command needs the optional `vs` semantic-search CLI (not found on PATH). See the README's vs section.",
     );
     return;
   }
@@ -123,7 +123,7 @@ async function relatedNotes(deps: CommandDeps): Promise<void> {
   if (!editor) return;
   if (!deps.vs) {
     vscode.window.showInformationMessage(
-      "Vault Light: this command needs the optional `vs` semantic-search CLI (not found on PATH). See the README's vs section.",
+      "Vault Mode: this command needs the optional `vs` semantic-search CLI (not found on PATH). See the README's vs section.",
     );
     return;
   }
@@ -146,7 +146,7 @@ async function relatedNotes(deps: CommandDeps): Promise<void> {
 }
 
 async function openDailyNote(deps: CommandDeps): Promise<void> {
-  const cfg = vscode.workspace.getConfiguration("vaultLight");
+  const cfg = vscode.workspace.getConfiguration("vaultMode");
   const folder = cfg.get<string>("dailyNotesFolder") ?? "Daily";
   const template = cfg.get<string>("dailyNoteTemplate") ?? "# {date}\n\n";
   const now = new Date();
