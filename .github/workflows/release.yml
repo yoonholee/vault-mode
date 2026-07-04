@@ -17,6 +17,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx @vscode/vsce package
-      - run: gh release create "$GITHUB_REF_NAME" *.vsix --title "$GITHUB_REF_NAME" --notes "See CHANGELOG.md. Cursor/VSCodium: install the attached .vsix."
+      - run: |
+          gh release create "$GITHUB_REF_NAME" *.vsix --title "$GITHUB_REF_NAME" \
+            --notes "See CHANGELOG.md. Cursor/VSCodium can install the attached .vsix directly."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
