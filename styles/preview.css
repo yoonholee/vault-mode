@@ -1,0 +1,207 @@
+/* preview.css -- VS Code Markdown preview (screen). Force light mode + house style.
+   Loaded via workspace .vscode/settings.json "markdown.styles" AFTER tokens.css
+   (which provides --color-* and --font-* custom properties). Screen-only concerns
+   (rem sizes, vertical rhythm) live here; shared palette/fonts live in tokens.css. */
+
+:root {
+  /* Typography scale (Major Third 1.25), screen rem */
+  --font-size-base: 1rem; /* 17px */
+  --font-size-sm: 0.85rem; /* ~14px */
+  --font-size-h4: 1rem; /* 17px */
+  --font-size-h3: 1.25rem; /* 21px */
+  --font-size-h2: 1.563rem; /* 27px */
+  --font-size-h1: 1.953rem; /* 33px */
+
+  /* Vertical rhythm */
+  --rhythm: 1.5rem;
+  --rhythm-half: 0.75rem;
+  --rhythm-quarter: 0.375rem;
+}
+
+/* Base / Body */
+.vscode-dark body,
+.vscode-dark,
+body {
+  background-color: var(--color-bg) !important;
+  color: var(--color-text) !important;
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.5;
+  padding: 2rem 4rem !important;
+  margin: 0 auto;
+  max-width: 70ch;
+  overflow-wrap: break-word; /* long unbroken tokens wrap instead of overflowing */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Headings */
+.vscode-dark h1, .vscode-dark h2, .vscode-dark h3,
+.vscode-dark h4, .vscode-dark h5, .vscode-dark h6,
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  color: var(--color-text) !important;
+  line-height: 1.25;
+  margin-top: var(--rhythm);
+  margin-bottom: var(--rhythm-half);
+}
+
+.vscode-dark h1, h1 { font-size: var(--font-size-h1); }
+.vscode-dark h2, h2 { font-size: var(--font-size-h2); letter-spacing: 0.02em; }
+.vscode-dark h3, h3 { font-size: var(--font-size-h3); letter-spacing: 0.02em; }
+.vscode-dark h4, .vscode-dark h5, .vscode-dark h6,
+h4, h5, h6 { font-size: var(--font-size-h4); }
+
+/* Paragraphs */
+.vscode-dark p,
+p {
+  margin-top: 0;
+  margin-bottom: var(--rhythm-half);
+  color: var(--color-text) !important;
+}
+
+/* Lists */
+ul, ol {
+  padding-left: 2rem;
+  margin-left: 0;
+  margin-top: 0;
+  margin-bottom: var(--rhythm-half);
+}
+
+ul { list-style: none; }
+
+li {
+  text-indent: 0;
+  padding-left: 0.25rem;
+  margin-bottom: var(--rhythm-quarter);
+}
+
+li p {
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-left: 0;
+  display: inline;
+}
+
+ul li:not(.task-list-item):not(:has(> input[type="checkbox"]))::before {
+  content: "•";
+  color: var(--color-text-muted) !important;
+  font-size: 1.1em;
+  margin-right: 0.6rem;
+  margin-left: -1.75rem;
+  display: inline-block;
+  width: 0.9rem;
+  vertical-align: baseline;
+}
+
+/* Task list checkboxes */
+.task-list-item,
+li:has(> input[type="checkbox"]) {
+  list-style: none;
+  padding-left: 0;
+}
+
+.task-list-item input[type="checkbox"],
+.task-list-item-checkbox,
+li:has(> input[type="checkbox"]) > input[type="checkbox"] {
+  accent-color: var(--color-checkbox-accent);
+  margin-left: -1.75rem;
+  margin-right: 0.4rem;
+  vertical-align: middle;
+}
+
+/* Tables */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: var(--rhythm-half);
+}
+
+.vscode-dark th, .vscode-dark td,
+th, td {
+  border-bottom: 1px solid var(--color-border) !important;
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+  color: var(--color-text) !important;
+  font-variant-numeric: tabular-nums; /* numeric columns align */
+}
+
+.vscode-dark th,
+th {
+  border-bottom: 2px solid var(--color-border) !important;
+  font-weight: 600;
+}
+
+/* Code */
+.vscode-dark pre, .vscode-dark code,
+pre, code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  color: var(--color-text) !important;
+  overflow-wrap: break-word; /* long inline-code tokens wrap */
+}
+
+.vscode-dark code,
+code {
+  background-color: var(--color-bg-code) !important;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+}
+
+.vscode-dark pre,
+pre {
+  background-color: var(--color-bg-pre) !important;
+  border-left: 2px solid var(--color-border-code) !important;
+  padding: var(--rhythm-half) var(--rhythm);
+  margin: var(--rhythm-half) 0;
+  overflow-x: auto;
+}
+
+pre code {
+  background-color: transparent !important;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* Blockquotes */
+.vscode-dark blockquote,
+blockquote {
+  border-left: 4px solid var(--color-accent) !important;
+  padding-left: var(--rhythm);
+  margin: var(--rhythm-half) 0;
+  margin-left: 0;
+  color: var(--color-text-muted) !important;
+  background-color: var(--color-bg) !important;
+  hanging-punctuation: first;
+}
+
+/* Links: GitHub blue, underlined for affordance (color-only fails WCAG 1.4.1) */
+.vscode-dark a,
+a {
+  color: var(--color-link) !important;
+  text-decoration: underline;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.15em;
+}
+
+/* Media: images and wide display math fit the column instead of overflowing */
+img {
+  max-width: 100%;
+  height: auto;
+}
+mjx-container,
+.katex-display {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Hide YAML frontmatter (VS Code renders it as table.frontmatter). Metadata stays
+   in the file for `vs` search; it just doesn't render in the preview. */
+table.frontmatter,
+pre.frontmatter,
+.frontmatter-error {
+  display: none !important;
+}

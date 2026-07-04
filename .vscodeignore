@@ -17,3 +17,8 @@ package-lock.json
 **/*.map
 **/*.ts
 !dist/**/*.js
+styles/render.py
+styles/fixtures/**
+styles/out/**
+styles/preview.png
+styles/README.md

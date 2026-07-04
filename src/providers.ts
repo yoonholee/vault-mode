@@ -7,7 +7,7 @@ import * as fs from "node:fs/promises";
 import type { WorkspaceIndex } from "./workspaceIndex";
 import type { VsClient } from "./vsClient";
 
-const WIKILINK_AT_POS = /(!?\[\[)([^\[\]]+?)\]\]/g;
+const WIKILINK_AT_POS = /(!?\[\[)([^[\]]+?)\]\]/g;
 
 interface WikilinkAtCursor {
   range: vscode.Range;
@@ -18,7 +18,10 @@ interface WikilinkAtCursor {
 }
 
 /** Find the wikilink whose inner content the cursor sits on. */
-export function wikilinkAt(doc: vscode.TextDocument, pos: vscode.Position): WikilinkAtCursor | undefined {
+export function wikilinkAt(
+  doc: vscode.TextDocument,
+  pos: vscode.Position,
+): WikilinkAtCursor | undefined {
   const line = doc.lineAt(pos.line).text;
   WIKILINK_AT_POS.lastIndex = 0;
   let m: RegExpExecArray | null;
@@ -44,7 +47,10 @@ export function wikilinkAt(doc: vscode.TextDocument, pos: vscode.Position): Wiki
         target = target.slice(0, hashIdx).trim();
       }
       return {
-        range: new vscode.Range(new vscode.Position(pos.line, start), new vscode.Position(pos.line, end)),
+        range: new vscode.Range(
+          new vscode.Position(pos.line, start),
+          new vscode.Position(pos.line, end),
+        ),
         target,
         alias,
         anchor,
@@ -57,7 +63,10 @@ export function wikilinkAt(doc: vscode.TextDocument, pos: vscode.Position): Wiki
 
 export class DefinitionProvider implements vscode.DefinitionProvider {
   constructor(private index: WorkspaceIndex) {}
-  provideDefinition(doc: vscode.TextDocument, pos: vscode.Position): vscode.ProviderResult<vscode.Definition> {
+  provideDefinition(
+    doc: vscode.TextDocument,
+    pos: vscode.Position,
+  ): vscode.ProviderResult<vscode.Definition> {
     const hit = wikilinkAt(doc, pos);
     if (!hit) return undefined;
     const target = this.index.resolve(hit.target);
@@ -72,8 +81,7 @@ export class ReferenceProvider implements vscode.ReferenceProvider {
     const docStem = path.basename(doc.uri.fsPath, ".md");
     const links = this.index.backlinksFor(docStem);
     return links.map(
-      (b) =>
-        new vscode.Location(vscode.Uri.file(b.source), new vscode.Position(b.line, b.col)),
+      (b) => new vscode.Location(vscode.Uri.file(b.source), new vscode.Position(b.line, b.col)),
     );
   }
 }
@@ -84,7 +92,10 @@ export class HoverProvider implements vscode.HoverProvider {
     private vs: VsClient | null,
     private opts: { augmentWithVs: boolean; vsLimit: number },
   ) {}
-  async provideHover(doc: vscode.TextDocument, pos: vscode.Position): Promise<vscode.Hover | undefined> {
+  async provideHover(
+    doc: vscode.TextDocument,
+    pos: vscode.Position,
+  ): Promise<vscode.Hover | undefined> {
     const hit = wikilinkAt(doc, pos);
     if (!hit) return undefined;
     const resolved = this.index.resolve(hit.target);
@@ -107,7 +118,10 @@ export class HoverProvider implements vscode.HoverProvider {
 
     if (this.opts.augmentWithVs && this.vs) {
       try {
-        const results = await this.vs.search(hit.target, { limit: this.opts.vsLimit, noUpdate: true });
+        const results = await this.vs.search(hit.target, {
+          limit: this.opts.vsLimit,
+          noUpdate: true,
+        });
         if (results.length > 0) {
           md.appendMarkdown(`\n**Related (via \`vs\`):**\n\n`);
           for (const r of results.slice(0, this.opts.vsLimit)) {
@@ -126,13 +140,17 @@ export class HoverProvider implements vscode.HoverProvider {
 
 export class CompletionProvider implements vscode.CompletionItemProvider {
   constructor(private index: WorkspaceIndex) {}
-  provideCompletionItems(doc: vscode.TextDocument, pos: vscode.Position): vscode.ProviderResult<vscode.CompletionList> {
+  provideCompletionItems(
+    doc: vscode.TextDocument,
+    pos: vscode.Position,
+  ): vscode.ProviderResult<vscode.CompletionList> {
     const line = doc.lineAt(pos.line).text;
     const before = line.slice(0, pos.character);
-    const m = /\[\[([^\[\]]*)$/.exec(before);
+    const m = /\[\[([^[\]]*)$/.exec(before);
     if (!m) return undefined;
     const prefix = m[1].toLowerCase();
-    const items = this.index.allStems()
+    const items = this.index
+      .allStems()
       .filter((s) => s.includes(prefix))
       .slice(0, 100)
       .map((stem) => {

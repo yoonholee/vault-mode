@@ -18,7 +18,7 @@ export interface Wikilink {
   col: number;
 }
 
-const WIKILINK_REGEX = /(!?)\[\[([^\[\]]+?)\]\]/g;
+const WIKILINK_REGEX = /(!?)\[\[([^[\]]+?)\]\]/g;
 
 export function parseWikilinks(source: string): Wikilink[] {
   const out: Wikilink[] = [];

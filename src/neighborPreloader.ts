@@ -81,7 +81,9 @@ export class NeighborPreloader implements vscode.Disposable {
     );
     for (const r of results) if (r.status === "fulfilled") loaded++;
 
-    this.log(`preload  ${Math.round(performance.now() - t0)}ms  loaded=${loaded}/${neighbors.length}  silent`);
+    this.log(
+      `preload  ${Math.round(performance.now() - t0)}ms  loaded=${loaded}/${neighbors.length}  silent`,
+    );
   }
 
   dispose() {

@@ -35,32 +35,46 @@ export function registerCommands(deps: CommandDeps): void {
     if (ed) return deps.preloader.maybePreload(ed);
     return undefined;
   });
+  r("vaultLight.previewToSide", () => vscode.commands.executeCommand("markdown.showPreviewToSide"));
   r("vaultLight.rebuildIndex", async () => {
     const cfg = vscode.workspace.getConfiguration("vaultLight");
     const patterns = cfg.get<string[]>("ignorePatterns") ?? [];
     const r = await deps.index.buildAll(patterns);
     deps.log(`rebuildIndex  ${r.durationMs}ms  files=${r.files}`);
-    vscode.window.showInformationMessage(`Vault Light: indexed ${r.files} files in ${Math.round(r.durationMs)}ms`);
+    vscode.window.showInformationMessage(
+      `Vault Light: indexed ${r.files} files in ${Math.round(r.durationMs)}ms`,
+    );
   });
 }
 
 async function semanticSearch(deps: CommandDeps): Promise<void> {
   if (!deps.vs) {
-    vscode.window.showErrorMessage("Vault Light: `vs` is not configured.");
+    vscode.window.showInformationMessage(
+      "Vault Light: this command needs the optional `vs` semantic-search CLI (not found on PATH). See the README's vs section.",
+    );
     return;
   }
-  const query = await vscode.window.showInputBox({ prompt: "Vault semantic search", placeHolder: "query" });
+  const query = await vscode.window.showInputBox({
+    prompt: "Vault semantic search",
+    placeHolder: "query",
+  });
   if (!query) return;
   const t0 = performance.now();
   try {
     const results = await deps.vs.search(query, { limit: 20 });
-    deps.log(`semanticSearch '${query.slice(0, 40)}'  ${Math.round(performance.now() - t0)}ms  hits=${results.length}`);
+    deps.log(
+      `semanticSearch '${query.slice(0, 40)}'  ${Math.round(performance.now() - t0)}ms  hits=${results.length}`,
+    );
     if (results.length === 0) {
       vscode.window.showInformationMessage("No results.");
       return;
     }
     const pick = await vscode.window.showQuickPick(
-      results.map((p) => ({ label: path.basename(p, ".md"), description: path.relative(deps.vaultRoot, p), absPath: p })),
+      results.map((p) => ({
+        label: path.basename(p, ".md"),
+        description: path.relative(deps.vaultRoot, p),
+        absPath: p,
+      })),
       { matchOnDescription: true, placeHolder: `${results.length} results` },
     );
     if (pick) await vscode.window.showTextDocument(vscode.Uri.file(pick.absPath));
@@ -81,12 +95,19 @@ async function insertWikilink(deps: CommandDeps): Promise<void> {
     return;
   }
 
-  const query = await vscode.window.showInputBox({ prompt: "Insert wikilink (vs search)", placeHolder: "query" });
+  const query = await vscode.window.showInputBox({
+    prompt: "Insert wikilink (vs search)",
+    placeHolder: "query",
+  });
   if (!query) return;
   try {
     const results = await deps.vs.search(query, { limit: 20 });
     const pick = await vscode.window.showQuickPick(
-      results.map((p) => ({ label: path.basename(p, ".md"), description: path.relative(deps.vaultRoot, p), stem: path.basename(p, ".md") })),
+      results.map((p) => ({
+        label: path.basename(p, ".md"),
+        description: path.relative(deps.vaultRoot, p),
+        stem: path.basename(p, ".md"),
+      })),
       { matchOnDescription: true },
     );
     if (pick) {
@@ -101,7 +122,9 @@ async function relatedNotes(deps: CommandDeps): Promise<void> {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return;
   if (!deps.vs) {
-    vscode.window.showErrorMessage("Vault Light: `vs` is not configured.");
+    vscode.window.showInformationMessage(
+      "Vault Light: this command needs the optional `vs` semantic-search CLI (not found on PATH). See the README's vs section.",
+    );
     return;
   }
   const stem = path.basename(editor.document.uri.fsPath, ".md");
@@ -109,7 +132,11 @@ async function relatedNotes(deps: CommandDeps): Promise<void> {
     const results = await deps.vs.search(stem, { limit: 10 });
     const filtered = results.filter((p) => p !== editor.document.uri.fsPath);
     const pick = await vscode.window.showQuickPick(
-      filtered.map((p) => ({ label: path.basename(p, ".md"), description: path.relative(deps.vaultRoot, p), absPath: p })),
+      filtered.map((p) => ({
+        label: path.basename(p, ".md"),
+        description: path.relative(deps.vaultRoot, p),
+        absPath: p,
+      })),
       { matchOnDescription: true, placeHolder: `${filtered.length} related notes` },
     );
     if (pick) await vscode.window.showTextDocument(vscode.Uri.file(pick.absPath));

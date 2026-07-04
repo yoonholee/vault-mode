@@ -9,7 +9,7 @@ import * as vscode from "vscode";
 import MarkdownIt from "markdown-it";
 import { WorkspaceIndex } from "./workspaceIndex";
 import { VscodeFs } from "./services/vscodeFs";
-import { VsClient } from "./vsClient";
+import { VsClient, vsBinaryAvailable } from "./vsClient";
 import { PerfLogger } from "./perfLogger";
 import {
   DefinitionProvider,
@@ -31,10 +31,9 @@ export async function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(output);
 
   const cfg = vscode.workspace.getConfiguration("vaultLight");
-  const perfLog = new PerfLogger(
-    (line) => output.appendLine(line),
-    { enabled: cfg.get<boolean>("perfLog") ?? true },
-  );
+  const perfLog = new PerfLogger((line) => output.appendLine(line), {
+    enabled: cfg.get<boolean>("perfLog") ?? true,
+  });
 
   const folders = vscode.workspace.workspaceFolders;
   if (!folders || folders.length === 0) {
@@ -52,13 +51,21 @@ export async function activate(ctx: vscode.ExtensionContext) {
   const ignorePatterns = cfg.get<string[]>("ignorePatterns") ?? [];
   perfLog
     .time("buildAll", () => index.buildAll(ignorePatterns))
-    .then((r) => output.appendLine(`Index built: ${r.files} files in ${Math.round(r.durationMs)}ms`))
-    .catch((e) => output.appendLine(`Index build error: ${e instanceof Error ? e.message : String(e)}`));
+    .then((r) =>
+      output.appendLine(`Index built: ${r.files} files in ${Math.round(r.durationMs)}ms`),
+    )
+    .catch((e) =>
+      output.appendLine(`Index build error: ${e instanceof Error ? e.message : String(e)}`),
+    );
 
-  // vs client
+  // vs client (optional integration; null when the binary is absent)
   const vsBinary = cfg.get<string>("vsPath") ?? "vs";
   const vsTimeoutMs = cfg.get<number>("vsTimeoutMs") ?? 5000;
-  const vs = new VsClient({ binary: vsBinary, timeoutMs: vsTimeoutMs, vaultRoot });
+  const vs = vsBinaryAvailable(vsBinary)
+    ? new VsClient({ binary: vsBinary, timeoutMs: vsTimeoutMs, vaultRoot })
+    : null;
+  if (!vs)
+    output.appendLine(`vs binary '${vsBinary}' not found; semantic-search features disabled.`);
 
   // Providers
   const mdSelector: vscode.DocumentSelector = { scheme: "file", language: "markdown" };
@@ -103,9 +110,13 @@ export async function activate(ctx: vscode.ExtensionContext) {
   );
   ctx.subscriptions.push(watcher);
   const update = (uri: vscode.Uri) =>
-    index.updateFile(uri.fsPath).catch((e) =>
-      output.appendLine(`watcher.update ${uri.fsPath} error: ${e instanceof Error ? e.message : String(e)}`),
-    );
+    index
+      .updateFile(uri.fsPath)
+      .catch((e) =>
+        output.appendLine(
+          `watcher.update ${uri.fsPath} error: ${e instanceof Error ? e.message : String(e)}`,
+        ),
+      );
   const remove = (uri: vscode.Uri) => index.removeFile(uri.fsPath);
   watcher.onDidCreate(update);
   watcher.onDidChange(update);

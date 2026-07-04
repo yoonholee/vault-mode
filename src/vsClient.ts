@@ -1,6 +1,24 @@
 // Wraps the user's `vs` CLI. Time-bounded, captures stderr, parses stdout.
 
 import { spawn as childProcessSpawn } from "node:child_process";
+import * as fs from "node:fs";
+import * as path from "node:path";
+
+/** True if `binary` is an executable path or resolves against PATH. Mirrors spawn's lookup. */
+export function vsBinaryAvailable(binary: string, env: NodeJS.ProcessEnv = process.env): boolean {
+  const isExecutable = (p: string): boolean => {
+    try {
+      fs.accessSync(p, fs.constants.X_OK);
+      return fs.statSync(p).isFile();
+    } catch {
+      return false;
+    }
+  };
+  if (binary.includes(path.sep)) return isExecutable(binary);
+  return (env.PATH ?? "")
+    .split(path.delimiter)
+    .some((dir) => dir && isExecutable(path.join(dir, binary)));
+}
 
 export interface SpawnedProcess {
   stdout: { on(event: "data", cb: (chunk: Buffer) => void): void } | null;

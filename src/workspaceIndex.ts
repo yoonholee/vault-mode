@@ -41,7 +41,11 @@ export class WorkspaceIndex {
       try {
         const text = await this.fs.readFile(abs);
         const links = parseWikilinks(text);
-        const outgoing: OutgoingLink[] = links.map((l) => ({ target: l.target, line: l.line, col: l.col }));
+        const outgoing: OutgoingLink[] = links.map((l) => ({
+          target: l.target,
+          line: l.line,
+          col: l.col,
+        }));
         this.outgoing.set(abs, outgoing);
         this.backlinks.recordOutgoing(abs, outgoing);
       } catch {
@@ -58,7 +62,11 @@ export class WorkspaceIndex {
     try {
       const text = await this.fs.readFile(absPath);
       const links = parseWikilinks(text);
-      const outgoing: OutgoingLink[] = links.map((l) => ({ target: l.target, line: l.line, col: l.col }));
+      const outgoing: OutgoingLink[] = links.map((l) => ({
+        target: l.target,
+        line: l.line,
+        col: l.col,
+      }));
       this.outgoing.set(absPath, outgoing);
       this.backlinks.recordOutgoing(absPath, outgoing);
     } catch {

@@ -1,8 +1,9 @@
 {
   "name": "vault-light",
   "displayName": "Vault Light",
-  "description": "Wikilinks, backlinks, and semantic-search bridge for Obsidian-style vaults in VSCode.",
-  "version": "0.1.1",
+  "description": "Opinionated companion for Obsidian-style vaults: wikilinks, backlinks, daily notes, a styled Markdown preview, and an optional semantic-search bridge.",
+  "version": "0.2.0",
+  "icon": "icon.png",
   "private": true,
   "license": "MIT",
   "publisher": "yoonholee",
@@ -29,8 +30,18 @@
       { "command": "vaultLight.openRandomNote", "title": "Vault: Open Random Note", "category": "Vault Light" },
       { "command": "vaultLight.regenerateCopilotInstructions", "title": "Vault: Regenerate Copilot Instructions", "category": "Vault Light" },
       { "command": "vaultLight.preloadNeighbors", "title": "Vault: Preload Wikilink Neighbors", "category": "Vault Light" },
-      { "command": "vaultLight.rebuildIndex", "title": "Vault: Rebuild Workspace Index", "category": "Vault Light" }
+      { "command": "vaultLight.rebuildIndex", "title": "Vault: Rebuild Workspace Index", "category": "Vault Light" },
+      { "command": "vaultLight.previewToSide", "title": "Vault: Open Markdown Preview to Side", "category": "Vault Light", "icon": "$(layout-sidebar-right)" }
     ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "vaultLight.previewToSide",
+          "group": "navigation",
+          "when": "resourceLangId == markdown || resourceLangId == prompt || resourceLangId == instructions || resourceLangId == chatagent || resourceLangId == skill"
+        }
+      ]
+    },
     "configuration": {
       "title": "Vault Light",
       "properties": {
@@ -84,8 +95,7 @@
             "assets/**",
             "node_modules/**",
             "pdf-exports/**",
-            "pdfs/**",
-            "__etc/Roam-*/**"
+            "pdfs/**"
           ],
           "description": "Glob patterns excluded from the workspace index. Also reads .gitignore and .ignore at vault root."
         },
@@ -96,6 +106,7 @@
         }
       }
     },
+    "markdown.previewStyles": ["./styles/tokens.css", "./styles/preview.css"],
     "grammars": [
       {
         "scopeName": "markdown.wikilink.injection",

@@ -1,0 +1,25 @@
+/* tokens.css -- shared house-style design tokens.
+   Source of truth for the vault's markdown look, used by BOTH preview.css (VS Code
+   screen preview) and print.css (md-print PDF). Change a token here and both media
+   update -- "one decision saves 1000" (see Personal/Personal Aesthetic.md, Concepts/Fonts.md).
+   Loaded as a separate stylesheet alongside each consumer (no @import), so CSS custom
+   properties on :root are visible to both. */
+:root {
+  /* Palette: ~85% black text, grayscale default, surgical Stanford red */
+  --color-text: #262626;
+  --color-text-muted: #666;
+  --color-bg: #ffffff;
+  --color-bg-code: #f0f0f0;
+  --color-bg-pre: #f6f6f6;
+  --color-border: #ddd;
+  --color-border-code: #999;
+  --color-accent: #8c1515;
+  --color-link: #0366d6;
+  --color-checkbox-accent: #0b5394;
+
+  /* Type families: serif titles + sans body + mono (house pairing).
+     "Apple SD Gothic Neo" is the CJK (Korean) fallback before the generic. */
+  --font-heading: "Tiempos Headline", "Source Serif 4", Georgia, "Apple SD Gothic Neo", serif;
+  --font-body: "Source Sans 3", "Helvetica Neue", Helvetica, Arial, "Apple SD Gothic Neo", sans-serif;
+  --font-mono: "Source Code Pro", "MonoLisa", "Apple SD Gothic Neo", monospace;
+}

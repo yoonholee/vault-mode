@@ -22,9 +22,7 @@ export function generateCopilotInstructions(input: CopilotInstructionsInput): st
 
   lines.push("## Style");
   lines.push("");
-  lines.push(
-    "- One sentence per line. No mid-sentence line breaks. Let the editor soft-wrap.",
-  );
+  lines.push("- One sentence per line. No mid-sentence line breaks. Let the editor soft-wrap.");
   lines.push("- Terse, working-notes style. No filler. No press-release verbs.");
   lines.push("- No em-dashes. Use periods, colons, parentheses, or commas instead.");
   lines.push("- Math in LaTeX (`$...$` or `$$...$$`), not Unicode.");
@@ -32,15 +30,11 @@ export function generateCopilotInstructions(input: CopilotInstructionsInput): st
 
   lines.push("## Wikilinks");
   lines.push("");
-  lines.push(
-    "- Cross-reference other notes with `[[Note Name]]` (basename only, no path).",
-  );
+  lines.push("- Cross-reference other notes with `[[Note Name]]` (basename only, no path).");
   lines.push("- Aliased: `[[Note Name|displayed text]]`.");
   lines.push("- Header anchors: `[[Note Name#Section]]`.");
   lines.push("- Embeds: `![[Note Name]]` (rare).");
-  lines.push(
-    "- Wikilinks resolve case-insensitively to a file whose basename matches the target.",
-  );
+  lines.push("- Wikilinks resolve case-insensitively to a file whose basename matches the target.");
   lines.push("");
 
   if (topLevelDirs.length > 0) {
@@ -53,9 +47,11 @@ export function generateCopilotInstructions(input: CopilotInstructionsInput): st
   if (claudeMd && claudeMd.trim().length > 0) {
     lines.push("## CLAUDE.md excerpt");
     lines.push("");
-    const excerpt = claudeMd.length > MAX_CLAUDE_EXCERPT_BYTES
-      ? claudeMd.slice(0, MAX_CLAUDE_EXCERPT_BYTES) + "\n\n[... truncated for Copilot context budget]"
-      : claudeMd;
+    const excerpt =
+      claudeMd.length > MAX_CLAUDE_EXCERPT_BYTES
+        ? claudeMd.slice(0, MAX_CLAUDE_EXCERPT_BYTES) +
+          "\n\n[... truncated for Copilot context budget]"
+        : claudeMd;
     lines.push(excerpt.trim());
     lines.push("");
   }

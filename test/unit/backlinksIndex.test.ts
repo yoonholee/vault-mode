@@ -18,7 +18,12 @@ describe("BacklinksIndex", () => {
     idx.recordOutgoing("A.md", [{ target: "B", line: 1, col: 0 }]);
     idx.recordOutgoing("C.md", [{ target: "B", line: 2, col: 0 }]);
     expect(idx.backlinks("B")).toHaveLength(2);
-    expect(idx.backlinks("B").map((b) => b.source).sort()).toEqual(["A.md", "C.md"]);
+    expect(
+      idx
+        .backlinks("B")
+        .map((b) => b.source)
+        .sort(),
+    ).toEqual(["A.md", "C.md"]);
   });
 
   it("treats backlink target as case-insensitive", () => {
