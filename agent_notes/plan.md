@@ -14,7 +14,7 @@ Status: v0.4.0 ready to commit/push, then Marketplace publish.
 
 ---
 
-Status: v0.3.0 shipped (GitHub release + CI green + installed in VS Code and Cursor). Only vsce Marketplace publish remains (needs interactive `vsce login yoonholee`).
+Status: v0.3.0 shipped (GitHub release + CI green + installed in VS Code and Cursor). Only vsce Marketplace publish remains (needs publisher `yoonholeee`).
 
 ## Done (2026-07-04)
 

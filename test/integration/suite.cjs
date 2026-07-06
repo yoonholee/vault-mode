@@ -5,7 +5,7 @@ const path = require("node:path");
 const vscode = require("vscode");
 
 exports.run = async function run() {
-  const ext = vscode.extensions.getExtension("yoonholee.vault-mode");
+  const ext = vscode.extensions.getExtension("yoonholeee.vault-mode");
   assert.ok(ext, "extension not found in host");
   await ext.activate();
   assert.ok(ext.isActive, "extension failed to activate");

@@ -22,7 +22,7 @@ In my experience, a vault like this built up over months of personal writing, wh
 
 ## Install
 
-VS Code: search **Vault Mode** in the Marketplace, or `code --install-extension yoonholee.vault-mode`.
+VS Code: search **Vault Mode** in the Marketplace, or `code --install-extension yoonholeee.vault-mode`.
 
 Cursor / VSCodium / other forks: grab the `.vsix` from [Releases](https://github.com/yoonholee/vault-mode/releases), then `cursor --install-extension vault-mode-*.vsix`.
 
