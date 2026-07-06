@@ -17,7 +17,12 @@ export class BacklinksIndex {
   // target (lowercased) -> list of backlinks
   private byTarget = new Map<string, Backlink[]>();
   // source path -> list of targets it currently links to (for invalidation)
-  private outgoingBySource = new Map<string, string[]>();
+  private outgoingBySource = new Map<string, Set<string>>();
+
+  clear(): void {
+    this.byTarget.clear();
+    this.outgoingBySource.clear();
+  }
 
   /**
    * Replace all outgoing links from `source`. Removes any prior entries
@@ -25,15 +30,15 @@ export class BacklinksIndex {
    */
   recordOutgoing(source: string, links: OutgoingLink[]): void {
     this.removeSource(source);
-    const targets: string[] = [];
+    const targets = new Set<string>();
     for (const link of links) {
-      const key = link.target.toLowerCase();
+      const key = targetKey(link.target);
       const list = this.byTarget.get(key) ?? [];
       list.push({ source, line: link.line, col: link.col });
       this.byTarget.set(key, list);
-      targets.push(key);
+      targets.add(key);
     }
-    this.outgoingBySource.set(source, targets);
+    if (targets.size > 0) this.outgoingBySource.set(source, targets);
   }
 
   removeSource(source: string): void {
@@ -50,6 +55,13 @@ export class BacklinksIndex {
   }
 
   backlinks(target: string): Backlink[] {
-    return [...(this.byTarget.get(target.toLowerCase()) ?? [])];
+    return [...(this.byTarget.get(targetKey(target)) ?? [])];
   }
+}
+
+function targetKey(target: string): string {
+  const withoutExt = target.replace(/\.md$/i, "");
+  const slash = withoutExt.lastIndexOf("/");
+  const stem = slash === -1 ? withoutExt : withoutExt.slice(slash + 1);
+  return stem.toLowerCase();
 }

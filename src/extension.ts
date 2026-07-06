@@ -23,12 +23,10 @@ import { computeRenameEdits } from "./renameWikilinks";
 import { wikilinkPlugin, calloutPlugin } from "./markdownItPlugin";
 
 let globalIndex: WorkspaceIndex | undefined;
-let globalOutput: vscode.OutputChannel | undefined;
 
 export async function activate(ctx: vscode.ExtensionContext) {
   const t0 = performance.now();
   const output = vscode.window.createOutputChannel("Vault Mode");
-  globalOutput = output;
   ctx.subscriptions.push(output);
 
   const cfg = vscode.workspace.getConfiguration("vaultMode");
@@ -53,7 +51,9 @@ export async function activate(ctx: vscode.ExtensionContext) {
   perfLog
     .time("buildAll", () => index.buildAll(ignorePatterns))
     .then((r) =>
-      output.appendLine(`Index built: ${r.files} files in ${Math.round(r.durationMs)}ms`),
+      output.appendLine(
+        `Index built: files=${r.files} bytes=${r.bytes} links=${r.links} readErrors=${r.readErrors} list=${Math.round(r.listMs)}ms parse=${Math.round(r.parseMs)}ms total=${Math.round(r.durationMs)}ms`,
+      ),
     )
     .catch((e) =>
       output.appendLine(`Index build error: ${e instanceof Error ? e.message : String(e)}`),
@@ -63,7 +63,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
   const vsBinary = cfg.get<string>("vsPath") ?? "vs";
   const vsTimeoutMs = cfg.get<number>("vsTimeoutMs") ?? 5000;
   const vs = vsBinaryAvailable(vsBinary)
-    ? new VsClient({ binary: vsBinary, timeoutMs: vsTimeoutMs, vaultRoot })
+    ? new VsClient({ binary: vsBinary, timeoutMs: vsTimeoutMs, vaultRoot, perf: perfLog })
     : null;
   if (!vs)
     output.appendLine(`vs binary '${vsBinary}' not found; semantic-search features disabled.`);
@@ -71,16 +71,25 @@ export async function activate(ctx: vscode.ExtensionContext) {
   // Providers
   const mdSelector: vscode.DocumentSelector = { scheme: "file", language: "markdown" };
   ctx.subscriptions.push(
-    vscode.languages.registerDefinitionProvider(mdSelector, new DefinitionProvider(index)),
-    vscode.languages.registerReferenceProvider(mdSelector, new ReferenceProvider(index)),
+    vscode.languages.registerDefinitionProvider(mdSelector, new DefinitionProvider(index, perfLog)),
+    vscode.languages.registerReferenceProvider(mdSelector, new ReferenceProvider(index, perfLog)),
     vscode.languages.registerHoverProvider(
       mdSelector,
-      new HoverProvider(index, vs, {
-        augmentWithVs: cfg.get<boolean>("hover.augmentWithVs") ?? true,
-        vsLimit: 3,
-      }),
+      new HoverProvider(
+        index,
+        vs,
+        {
+          augmentWithVs: cfg.get<boolean>("hover.augmentWithVs") ?? true,
+          vsLimit: 3,
+        },
+        perfLog,
+      ),
     ),
-    vscode.languages.registerCompletionItemProvider(mdSelector, new CompletionProvider(index), "["),
+    vscode.languages.registerCompletionItemProvider(
+      mdSelector,
+      new CompletionProvider(index, perfLog),
+      "[",
+    ),
   );
 
   // Commands
@@ -90,6 +99,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
     vs,
     vaultRoot,
     log: (line) => output.appendLine(line),
+    perf: perfLog,
   });
 
   // FS watcher
@@ -97,15 +107,28 @@ export async function activate(ctx: vscode.ExtensionContext) {
     new vscode.RelativePattern(vaultRoot, "**/*.md"),
   );
   ctx.subscriptions.push(watcher);
-  const update = (uri: vscode.Uri) =>
+  const update = (uri: vscode.Uri) => {
+    const rel = path.relative(vaultRoot, uri.fsPath);
+    const tFile = performance.now();
     index
       .updateFile(uri.fsPath)
-      .catch((e) =>
-        output.appendLine(
-          `watcher.update ${uri.fsPath} error: ${e instanceof Error ? e.message : String(e)}`,
-        ),
-      );
-  const remove = (uri: vscode.Uri) => index.removeFile(uri.fsPath);
+      .then((r) =>
+        perfLog.log("watcher.update", performance.now() - tFile, {
+          file: rel,
+          ok: r.ok,
+          bytes: r.bytes,
+          links: r.links,
+        }),
+      )
+      .catch((e) => perfLog.log("watcher.update", performance.now() - tFile, { file: rel }, e));
+  };
+  const remove = (uri: vscode.Uri) => {
+    const t0 = performance.now();
+    index.removeFile(uri.fsPath);
+    perfLog.log("watcher.delete", performance.now() - t0, {
+      file: path.relative(vaultRoot, uri.fsPath),
+    });
+  };
   watcher.onDidCreate(update);
   watcher.onDidChange(update);
   watcher.onDidDelete(remove);
@@ -173,5 +196,4 @@ export async function activate(ctx: vscode.ExtensionContext) {
 
 export function deactivate(): void {
   globalIndex = undefined;
-  globalOutput?.dispose();
 }

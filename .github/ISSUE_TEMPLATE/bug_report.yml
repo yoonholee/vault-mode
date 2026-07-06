@@ -1,0 +1,65 @@
+name: Bug report
+description: Report a reproducible Vault Mode bug.
+title: "[bug] "
+labels: ["bug", "needs-repro"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What broke?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Repro
+      description: Smallest vault snippet, file tree, or steps that trigger it.
+      placeholder: |
+        1. Create A.md with `[[B]]`
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Vault Mode version
+      placeholder: "0.4.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: editor
+    attributes:
+      label: Editor
+      options:
+        - VS Code
+        - Cursor
+        - VSCodium
+        - Other VS Code fork
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS
+      placeholder: "macOS 15.5"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Vault Mode output
+      description: Paste relevant lines from the "Vault Mode" output channel.
+      render: text

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.0
+
+- Removed `Vault: Regenerate Copilot Instructions` and its generator/test code.
+- Perf logging is broader: activation index builds, rebuilds, watcher updates, commands, providers, and `vs` calls now emit timings/counters to the "Vault Mode" output channel.
+- Index rebuilds now clear stale resolver/backlink state before rebuilding.
+- Incremental read failures now clear stale backlinks for that file.
+- Backlinks are keyed by target stem, so path-qualified wikilinks count as backlinks.
+- Wikilink inner parsing is shared by parser, preview renderer, and providers.
+- Daily notes now use local calendar dates for "today".
+- Added public issue templates, `CONTRIBUTING.md`, package issue metadata, and an agent-note feature backlog.
+
 ## 0.3.0
 
 - Callouts render in the preview: `> [!type] Title` becomes a bold-titled blockquote with `callout callout-<type>` classes (was literal text).

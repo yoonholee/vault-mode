@@ -98,6 +98,35 @@ describe("WorkspaceIndex", () => {
     expect(res.durationMs).toBeGreaterThanOrEqual(0);
   });
 
+  it("rebuilds from a clean index", async () => {
+    fs.files.set("/vault/A.md", "[[B]]");
+    fs.files.set("/vault/B.md", "");
+    await idx.buildAll([]);
+    expect(idx.resolve("B")).toBe("/vault/B.md");
+    expect(idx.backlinksFor("B")).toHaveLength(1);
+
+    fs.files.set("/vault/A.md", "");
+    fs.files.delete("/vault/B.md");
+    await idx.buildAll([]);
+    expect(idx.resolve("B")).toBeUndefined();
+    expect(idx.backlinksFor("B")).toHaveLength(0);
+  });
+
+  it("clears a file's stale backlinks when incremental read fails", async () => {
+    fs.files.set("/vault/A.md", "[[B]]");
+    fs.files.set("/vault/B.md", "");
+    await idx.buildAll([]);
+    expect(idx.backlinksFor("B")).toHaveLength(1);
+
+    const orig = fs.readFile.bind(fs);
+    fs.readFile = async (p: string) => {
+      if (p === "/vault/A.md") throw new Error("EACCES");
+      return orig(p);
+    };
+    await idx.updateFile("/vault/A.md");
+    expect(idx.backlinksFor("B")).toHaveLength(0);
+  });
+
   it("allStems returns lowercased stems across all files", async () => {
     fs.files.set("/vault/A.md", "");
     fs.files.set("/vault/sub/Bar.md", "");

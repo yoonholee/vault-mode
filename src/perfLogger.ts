@@ -5,6 +5,9 @@ export interface PerfLoggerOptions {
   enabled?: boolean;
 }
 
+export type PerfFieldValue = string | number | boolean | null | undefined;
+export type PerfFields = Record<string, PerfFieldValue>;
+
 export class PerfLogger {
   private enabled: boolean;
   constructor(
@@ -18,33 +21,52 @@ export class PerfLogger {
     this.enabled = v;
   }
 
-  async time<T>(label: string, fn: () => Promise<T>): Promise<T> {
+  log(label: string, durationMs: number, fields: PerfFields = {}, error?: unknown): void {
+    if (!this.enabled) return;
+    const parts = [`${label}  ${Math.round(durationMs)}ms`];
+    const fieldText = formatFields(fields);
+    if (fieldText) parts.push(fieldText);
+    if (error !== undefined) {
+      const msg = error instanceof Error ? error.message : String(error);
+      parts.push(`[error: ${msg}]`);
+    }
+    this.sink(parts.join("  "));
+  }
+
+  async time<T>(label: string, fn: () => Promise<T>, fields: PerfFields = {}): Promise<T> {
     if (!this.enabled) return fn();
     const t0 = performance.now();
     try {
       const v = await fn();
-      this.sink(`${label}  ${Math.round(performance.now() - t0)}ms`);
+      this.log(label, performance.now() - t0, fields);
       return v;
     } catch (e) {
-      const ms = Math.round(performance.now() - t0);
-      const msg = e instanceof Error ? e.message : String(e);
-      this.sink(`${label}  ${ms}ms  [error: ${msg}]`);
+      this.log(label, performance.now() - t0, fields, e);
       throw e;
     }
   }
 
-  timeSync<T>(label: string, fn: () => T): T {
+  timeSync<T>(label: string, fn: () => T, fields: PerfFields = {}): T {
     if (!this.enabled) return fn();
     const t0 = performance.now();
     try {
       const v = fn();
-      this.sink(`${label}  ${Math.round(performance.now() - t0)}ms`);
+      this.log(label, performance.now() - t0, fields);
       return v;
     } catch (e) {
-      const ms = Math.round(performance.now() - t0);
-      const msg = e instanceof Error ? e.message : String(e);
-      this.sink(`${label}  ${ms}ms  [error: ${msg}]`);
+      this.log(label, performance.now() - t0, fields, e);
       throw e;
     }
   }
+}
+
+function formatFields(fields: PerfFields): string {
+  return Object.entries(fields)
+    .flatMap(([k, v]) => (v === undefined || v === null ? [] : [`${k}=${formatValue(v)}`]))
+    .join(" ");
+}
+
+function formatValue(v: Exclude<PerfFieldValue, null | undefined>): string {
+  if (typeof v === "string" && /\s/.test(v)) return JSON.stringify(v);
+  return String(v);
 }

@@ -33,6 +33,12 @@ describe("BacklinksIndex", () => {
     expect(idx.backlinks("FOO")).toHaveLength(1);
   });
 
+  it("keys backlinks by target stem for path-qualified wikilinks", () => {
+    const idx = new BacklinksIndex();
+    idx.recordOutgoing("A.md", [{ target: "dir/Foo", line: 0, col: 0 }]);
+    expect(idx.backlinks("Foo")).toHaveLength(1);
+  });
+
   it("replaces all outgoing links from a source when re-recorded", () => {
     const idx = new BacklinksIndex();
     idx.recordOutgoing("A.md", [

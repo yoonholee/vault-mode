@@ -2,13 +2,17 @@
   "name": "vault-mode",
   "displayName": "Vault Mode",
   "description": "Wikilinks, backlinks, daily notes, a styled Markdown preview, and optional semantic search for markdown vaults. For VS Code, Cursor, and compatible editors.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "icon": "icon.png",
   "license": "MIT",
   "publisher": "yoonholee",
   "repository": {
     "type": "git",
     "url": "https://github.com/yoonholee/vault-mode.git"
+  },
+  "homepage": "https://github.com/yoonholee/vault-mode#readme",
+  "bugs": {
+    "url": "https://github.com/yoonholee/vault-mode/issues"
   },
   "engines": {
     "vscode": "^1.85.0"
@@ -38,7 +42,6 @@
       { "command": "vaultMode.relatedNotes", "title": "Vault: Show Related Notes", "category": "Vault Mode" },
       { "command": "vaultMode.openDailyNote", "title": "Vault: Open Today's Daily Note", "category": "Vault Mode" },
       { "command": "vaultMode.openRandomNote", "title": "Vault: Open Random Note", "category": "Vault Mode" },
-      { "command": "vaultMode.regenerateCopilotInstructions", "title": "Vault: Regenerate Copilot Instructions", "category": "Vault Mode" },
       { "command": "vaultMode.rebuildIndex", "title": "Vault: Rebuild Workspace Index", "category": "Vault Mode" },
       { "command": "vaultMode.previewToSide", "title": "Vault: Open Markdown Preview to Side", "category": "Vault Mode", "icon": "$(layout-sidebar-right)" }
     ],
@@ -101,7 +104,7 @@
         "vaultMode.perfLog": {
           "type": "boolean",
           "default": true,
-          "description": "Log timings for hot paths to the Vault Mode output channel."
+          "description": "Log detailed timings and counters for activation, indexing, providers, commands, watchers, and vs calls."
         }
       }
     },

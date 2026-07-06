@@ -16,14 +16,24 @@ export interface FileSystem {
 
 export interface BuildResult {
   files: number;
+  bytes: number;
+  links: number;
+  readErrors: number;
+  listMs: number;
+  parseMs: number;
+  durationMs: number;
+}
+
+export interface UpdateResult {
+  ok: boolean;
+  bytes: number;
+  links: number;
   durationMs: number;
 }
 
 export class WorkspaceIndex {
   readonly resolver = new Resolver();
   readonly backlinks = new BacklinksIndex();
-  // absPath -> outgoing wikilink targets
-  private outgoing = new Map<string, OutgoingLink[]>();
 
   constructor(
     private readonly root: string,
@@ -32,7 +42,11 @@ export class WorkspaceIndex {
 
   async buildAll(ignorePatterns: string[]): Promise<BuildResult> {
     const t0 = performance.now();
+    const listT0 = performance.now();
     const files = await this.fs.listFiles(this.root, ignorePatterns);
+    const listMs = performance.now() - listT0;
+    this.resolver.clear();
+    this.backlinks.clear();
     for (const abs of files) {
       // Always add to resolver (stem map). Parsing may fail; that's OK.
       this.resolver.add(this.toRel(abs));
@@ -41,30 +55,45 @@ export class WorkspaceIndex {
     // awaiting was the dominant activation cost (see scripts/bench-all.mjs).
     const CONCURRENCY = 32;
     let next = 0;
+    let bytes = 0;
+    let linksCount = 0;
+    let readErrors = 0;
+    const parseT0 = performance.now();
     const worker = async () => {
       while (next < files.length) {
         const abs = files[next++];
         try {
           const text = await this.fs.readFile(abs);
           const links = parseWikilinks(text);
+          bytes += text.length;
+          linksCount += links.length;
           const outgoing: OutgoingLink[] = links.map((l) => ({
             target: l.target,
             line: l.line,
             col: l.col,
           }));
-          this.outgoing.set(abs, outgoing);
           this.backlinks.recordOutgoing(abs, outgoing);
         } catch {
+          readErrors++;
           // Skip unreadable files; resolver still has the stem.
         }
       }
     };
     await Promise.all(Array.from({ length: Math.min(CONCURRENCY, files.length) }, worker));
-    return { files: files.length, durationMs: performance.now() - t0 };
+    return {
+      files: files.length,
+      bytes,
+      links: linksCount,
+      readErrors,
+      listMs,
+      parseMs: performance.now() - parseT0,
+      durationMs: performance.now() - t0,
+    };
   }
 
-  /** Re-parse a single file and update resolver + backlinks + outgoing cache. */
-  async updateFile(absPath: string): Promise<void> {
+  /** Re-parse a single file and update resolver + backlinks. */
+  async updateFile(absPath: string): Promise<UpdateResult> {
+    const t0 = performance.now();
     // Update resolver (in case the file is new)
     this.resolver.add(this.toRel(absPath));
     try {
@@ -75,17 +104,22 @@ export class WorkspaceIndex {
         line: l.line,
         col: l.col,
       }));
-      this.outgoing.set(absPath, outgoing);
       this.backlinks.recordOutgoing(absPath, outgoing);
+      return {
+        ok: true,
+        bytes: text.length,
+        links: links.length,
+        durationMs: performance.now() - t0,
+      };
     } catch {
-      // ignore
+      this.backlinks.removeSource(absPath);
+      return { ok: false, bytes: 0, links: 0, durationMs: performance.now() - t0 };
     }
   }
 
   removeFile(absPath: string): void {
     this.resolver.remove(this.toRel(absPath));
     this.backlinks.removeSource(absPath);
-    this.outgoing.delete(absPath);
   }
 
   /** Resolve a wikilink target to an ABSOLUTE file path, or undefined. */
@@ -104,16 +138,7 @@ export class WorkspaceIndex {
 
   /** Absolute paths of files with at least one outgoing link whose stem matches (case-insensitive). */
   sourcesLinkingToStem(stem: string): string[] {
-    const lower = stem.toLowerCase();
-    const out: string[] = [];
-    for (const [src, links] of this.outgoing) {
-      const hit = links.some((l) => {
-        const segments = l.target.split("/");
-        return segments[segments.length - 1].toLowerCase() === lower;
-      });
-      if (hit) out.push(src);
-    }
-    return out;
+    return [...new Set(this.backlinks.backlinks(stem).map((b) => b.source))];
   }
 
   private toRel(abs: string): string {

@@ -18,7 +18,37 @@ export interface Wikilink {
   col: number;
 }
 
+export interface WikilinkParts {
+  target: string;
+  anchor?: string;
+  alias?: string;
+}
+
 const WIKILINK_REGEX = /(!?)\[\[([^[\]]+?)\]\]/g;
+
+export function parseWikilinkInner(inner: string): WikilinkParts | undefined {
+  if (!inner.trim()) return undefined;
+
+  let target = inner;
+  let alias: string | undefined;
+  let anchor: string | undefined;
+  const pipeIdx = inner.indexOf("|");
+  if (pipeIdx !== -1) {
+    target = inner.slice(0, pipeIdx).trim();
+    alias = inner.slice(pipeIdx + 1).trim();
+  } else {
+    target = inner.trim();
+  }
+
+  const hashIdx = target.indexOf("#");
+  if (hashIdx !== -1) {
+    anchor = target.slice(hashIdx + 1).trim();
+    target = target.slice(0, hashIdx).trim();
+  }
+  if (!target) return undefined;
+
+  return { target, anchor, alias };
+}
 
 export function parseWikilinks(source: string): Wikilink[] {
   // Fast path: no [[ anywhere means the regex cannot match; skip all allocation.
@@ -112,42 +142,19 @@ export function parseWikilinks(source: string): Wikilink[] {
     if (fenceMask[bracketStart] || codeSpanMask[bracketStart]) continue;
 
     // Triple-open guard: [[[X]] should not be parsed as a wikilink.
-    // If the character immediately before the [[ is also a [, skip.
-    if (fullStart - (isEmbed ? 1 : 0) - 1 >= 0) {
-      const prev = source[fullStart - (isEmbed ? 1 : 0) - 1];
-      // For [[X case we look at the char before; for ![[X we look at the char before !.
-      // The [[ starts at bracketStart, so source[bracketStart - 1] is what we want.
-      const prevOfBracket = source[bracketStart - 1];
-      if (prevOfBracket === "[" && prev !== "!") continue;
-      if (prevOfBracket === "[") continue;
-    }
+    if (source[bracketStart - 1] === "[") continue;
 
-    // Parse inner: split on | for alias, then on # for anchor
-    let target = inner;
-    let alias: string | undefined;
-    let anchor: string | undefined;
-    const pipeIdx = inner.indexOf("|");
-    if (pipeIdx !== -1) {
-      target = inner.slice(0, pipeIdx).trim();
-      alias = inner.slice(pipeIdx + 1).trim();
-    } else {
-      target = inner.trim();
-    }
-    const hashIdx = target.indexOf("#");
-    if (hashIdx !== -1) {
-      anchor = target.slice(hashIdx + 1).trim();
-      target = target.slice(0, hashIdx).trim();
-    }
-    if (!target) continue;
+    const parts = parseWikilinkInner(inner);
+    if (!parts) continue;
 
     // Find line/col from offset
     const { line, col } = offsetToLineCol(lineStarts, fullStart);
 
     out.push({
       raw: match[0],
-      target,
-      anchor,
-      alias,
+      target: parts.target,
+      anchor: parts.anchor,
+      alias: parts.alias,
       embed: isEmbed,
       range: { start: fullStart, end: fullEnd },
       line,

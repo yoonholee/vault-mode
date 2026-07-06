@@ -1,5 +1,19 @@
 # Plan
 
+## Current task: remove Copilot generator, simplify, ship
+
+Status: v0.4.0 ready to commit/push, then Marketplace publish.
+
+- Removed command contribution/registration, generator implementation/test, README command docs.
+- Added broad perf logging for activation/indexing/watchers/commands/providers/`vs`.
+- Fixed stale index/backlink cases, shared wikilink inner parsing, local-date daily notes.
+- Added issue templates, CONTRIBUTING.md, package issue metadata, and feature backlog.
+- Verified: typecheck, lint, unit, build, bench, VSIX package.
+- Not green: integration test download hung; logged in friction.md.
+- Next: commit/push, then `vsce publish` (may need interactive auth/token).
+
+---
+
 Status: v0.3.0 shipped (GitHub release + CI green + installed in VS Code and Cursor). Only vsce Marketplace publish remains (needs interactive `vsce login yoonholee`).
 
 ## Done (2026-07-04)

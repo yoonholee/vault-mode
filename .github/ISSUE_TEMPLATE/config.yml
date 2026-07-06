@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Questions
+    url: https://github.com/yoonholee/vault-mode/issues/new
+    about: Ask via a plain GitHub issue.

@@ -8,6 +8,10 @@ export class Resolver {
   // stem (lowercased) -> list of relative file paths (preserving original case)
   private byStem = new Map<string, string[]>();
 
+  clear(): void {
+    this.byStem.clear();
+  }
+
   add(relPath: string): void {
     const stem = stemOf(relPath);
     if (!stem) return;

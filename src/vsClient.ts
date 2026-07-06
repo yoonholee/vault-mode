@@ -3,6 +3,7 @@
 import { spawn as childProcessSpawn } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import type { PerfLogger } from "./perfLogger";
 
 /** True if `binary` is an executable path or resolves against PATH. Mirrors spawn's lookup. */
 export function vsBinaryAvailable(binary: string, env: NodeJS.ProcessEnv = process.env): boolean {
@@ -38,6 +39,7 @@ export interface VsClientOptions {
   vaultRoot: string;
   /** Override for tests. */
   spawner?: Spawner;
+  perf?: PerfLogger;
 }
 
 export interface VsSearchOptions {
@@ -52,15 +54,18 @@ export class VsClient {
   private timeoutMs: number;
   private vaultRoot: string;
   private spawner: Spawner;
+  private perf: PerfLogger | undefined;
 
   constructor(opts: VsClientOptions) {
     this.binary = opts.binary;
     this.timeoutMs = opts.timeoutMs;
     this.vaultRoot = opts.vaultRoot;
     this.spawner = opts.spawner ?? defaultSpawn;
+    this.perf = opts.perf;
   }
 
   async search(query: string, options: VsSearchOptions = {}): Promise<string[]> {
+    const t0 = performance.now();
     const args: string[] = ["--paths-only"];
     // Bypass slow incremental updates by default when called from the extension hot path
     if (options.noUpdate !== false) args.push("--no-update");
@@ -69,11 +74,32 @@ export class VsClient {
     if (options.lexicalOnly) args.push("--lexical-only");
     args.push(query);
 
-    const stdout = await this.runRaw(args);
-    return stdout
-      .split("\n")
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0);
+    try {
+      const stdout = await this.runRaw(args);
+      const paths = stdout
+        .split("\n")
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+      this.perf?.log("vs.search", performance.now() - t0, {
+        paths: paths.length,
+        limit: options.limit,
+        noUpdate: options.noUpdate !== false,
+        lexicalOnly: options.lexicalOnly ?? false,
+      });
+      return paths;
+    } catch (e) {
+      this.perf?.log(
+        "vs.search",
+        performance.now() - t0,
+        {
+          limit: options.limit,
+          noUpdate: options.noUpdate !== false,
+          lexicalOnly: options.lexicalOnly ?? false,
+        },
+        e,
+      );
+      throw e;
+    }
   }
 
   private runRaw(args: string[]): Promise<string> {

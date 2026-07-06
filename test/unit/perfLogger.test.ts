@@ -51,4 +51,14 @@ describe("PerfLogger", () => {
     expect(Number.isInteger(ms)).toBe(true);
     expect(ms).toBeGreaterThanOrEqual(0);
   });
+
+  it("logs structured fields", () => {
+    const lines: string[] = [];
+    const log = new PerfLogger((s) => lines.push(s));
+    log.log("op", 1.2, { files: 3, ok: true, skipped: undefined });
+    expect(lines[0]).toContain("op  1ms");
+    expect(lines[0]).toContain("files=3");
+    expect(lines[0]).toContain("ok=true");
+    expect(lines[0]).not.toContain("skipped");
+  });
 });

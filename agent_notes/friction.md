@@ -2,6 +2,16 @@
 
 Format per entry: what tried, what happened, workaround, suggested fix.
 
+## 2026-07-05: integration test download hung
+
+**Tried:** `npm run test:integration` after v0.4.0 perf/docs changes.
+
+**What happened:** `@vscode/test-electron` validated VS Code 1.127.0, found the 264MB darwin-arm64 download, then produced no progress/output for several minutes. Stopped with Ctrl-C.
+
+**Workaround:** Use `npm run typecheck && npm run lint && npm run test:unit && npm run build` plus `npm run bench` for this pass.
+
+**Suggested fix:** Cache the VS Code test binary in CI/local dev or pin/use an already-installed VS Code path for integration tests.
+
 ## 2026-05-23: Copilot booster jumped focus around the editor
 
 **Tried:** Open wikilink neighbors as `preview: true` tabs in `ViewColumn.Beside` with `preserveFocus: true`, then refocus the original editor.
@@ -25,4 +35,3 @@ Format per entry: what tried, what happened, workaround, suggested fix.
 **Suggested fix:** File upstream issue at artempyanykh/marksman if we can find a minimal reproducer. Until then, marksman is not viable as a hard dependency for any vault with mixed/scraped content.
 
 **Trust trade-off:** External LSPs can vanish for reasons we can't fix. For a personal tool that has to work on this user's vault today, owning the resolution logic is worth the 500 LOC.
-

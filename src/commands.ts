@@ -6,8 +6,8 @@ import * as fs from "node:fs/promises";
 import * as fsSync from "node:fs";
 import type { WorkspaceIndex } from "./workspaceIndex";
 import type { VsClient } from "./vsClient";
+import type { PerfLogger } from "./perfLogger";
 import { dailyNotePath, renderDailyNoteTemplate } from "./dailyNote";
-import { generateCopilotInstructions } from "./copilotInstructionsGen";
 
 export interface CommandDeps {
   context: vscode.ExtensionContext;
@@ -15,25 +15,33 @@ export interface CommandDeps {
   vs: VsClient | null;
   vaultRoot: string;
   log: (line: string) => void;
+  perf: PerfLogger;
 }
 
 export function registerCommands(deps: CommandDeps): void {
   const { context } = deps;
   const r = (cmd: string, handler: (...args: unknown[]) => unknown) =>
-    context.subscriptions.push(vscode.commands.registerCommand(cmd, handler));
+    context.subscriptions.push(
+      vscode.commands.registerCommand(cmd, (...args: unknown[]) =>
+        deps.perf.time(`command.${cmd.replace("vaultMode.", "")}`, () =>
+          Promise.resolve(handler(...args)),
+        ),
+      ),
+    );
 
   r("vaultMode.semanticSearch", () => semanticSearch(deps));
   r("vaultMode.insertWikilink", () => insertWikilink(deps));
   r("vaultMode.relatedNotes", () => relatedNotes(deps));
   r("vaultMode.openDailyNote", () => openDailyNote(deps));
   r("vaultMode.openRandomNote", () => openRandomNote(deps));
-  r("vaultMode.regenerateCopilotInstructions", () => regenerateCopilotInstructions(deps));
   r("vaultMode.previewToSide", () => vscode.commands.executeCommand("markdown.showPreviewToSide"));
   r("vaultMode.rebuildIndex", async () => {
     const cfg = vscode.workspace.getConfiguration("vaultMode");
     const patterns = cfg.get<string[]>("ignorePatterns") ?? [];
     const r = await deps.index.buildAll(patterns);
-    deps.log(`rebuildIndex  ${r.durationMs}ms  files=${r.files}`);
+    deps.log(
+      `rebuildIndex files=${r.files} bytes=${r.bytes} links=${r.links} readErrors=${r.readErrors} list=${Math.round(r.listMs)}ms parse=${Math.round(r.parseMs)}ms total=${Math.round(r.durationMs)}ms`,
+    );
     vscode.window.showInformationMessage(
       `Vault Mode: indexed ${r.files} files in ${Math.round(r.durationMs)}ms`,
     );
@@ -84,7 +92,7 @@ async function insertWikilink(deps: CommandDeps): Promise<void> {
     // Fallback: list all stems
     const stems = deps.index.allStems().sort();
     const pick = await vscode.window.showQuickPick(stems, { placeHolder: "Insert wikilink" });
-    if (pick) editor.edit((eb) => eb.insert(editor.selection.active, `[[${pick}]]`));
+    if (pick) await editor.edit((eb) => eb.insert(editor.selection.active, `[[${pick}]]`));
     return;
   }
 
@@ -161,30 +169,4 @@ async function openRandomNote(deps: CommandDeps): Promise<void> {
   const stem = stems[Math.floor(Math.random() * stems.length)];
   const target = deps.index.resolve(stem);
   if (target) await vscode.window.showTextDocument(vscode.Uri.file(target));
-}
-
-async function regenerateCopilotInstructions(deps: CommandDeps): Promise<void> {
-  const claudeMdPath = path.join(deps.vaultRoot, "CLAUDE.md");
-  let claudeMd: string | undefined;
-  try {
-    claudeMd = await fs.readFile(claudeMdPath, "utf8");
-  } catch {
-    claudeMd = undefined;
-  }
-  const entries = await fs.readdir(deps.vaultRoot, { withFileTypes: true });
-  const topLevelDirs = entries
-    .filter((e) => e.isDirectory() && !e.name.startsWith(".") && e.name !== "node_modules")
-    .map((e) => e.name)
-    .sort();
-  const out = generateCopilotInstructions({
-    vaultName: path.basename(deps.vaultRoot),
-    topLevelDirs,
-    claudeMd,
-  });
-  const outDir = path.join(deps.vaultRoot, ".github");
-  const outFile = path.join(outDir, "copilot-instructions.md");
-  await fs.mkdir(outDir, { recursive: true });
-  await fs.writeFile(outFile, out, "utf8");
-  vscode.window.showInformationMessage(`Wrote ${path.relative(deps.vaultRoot, outFile)}`);
-  await vscode.window.showTextDocument(vscode.Uri.file(outFile));
 }

@@ -6,6 +6,7 @@
 // not transformed.
 
 import type MarkdownIt from "markdown-it";
+import { parseWikilinkInner } from "./wikilinkParser";
 
 // markdown-it 14 doesn't expose StateInline from its main types entry in a
 // portable way. Declare the minimal surface we use.
@@ -110,27 +111,12 @@ function wikilinkRule(state: MdStateInline, silent: boolean): boolean {
   // Disallow nested brackets inside the inner (would be a different construct)
   if (inner.includes("[") || inner.includes("]")) return false;
 
-  // Parse inner: pipe for alias, hash for anchor
-  let target = inner;
-  let alias: string | undefined;
-  let anchor: string | undefined;
-  const pipeIdx = inner.indexOf("|");
-  if (pipeIdx !== -1) {
-    target = inner.slice(0, pipeIdx).trim();
-    alias = inner.slice(pipeIdx + 1).trim();
-  } else {
-    target = inner.trim();
-  }
-  const hashIdx = target.indexOf("#");
-  if (hashIdx !== -1) {
-    anchor = target.slice(hashIdx + 1).trim();
-    target = target.slice(0, hashIdx).trim();
-  }
-  if (!target) return false;
+  const parts = parseWikilinkInner(inner);
+  if (!parts) return false;
 
   if (!silent) {
     const token = state.push("wikilink", "", 0);
-    token.meta = { target, alias, anchor, embed };
+    token.meta = { ...parts, embed };
   }
   state.pos = closeIdx + 2;
   return true;
