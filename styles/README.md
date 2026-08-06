@@ -19,7 +19,7 @@ No `@import`: each consumer loads `tokens.css` as a separate stylesheet (CSS cus
 - **Preview:** the extension contributes `markdown.previewStyles: ["./styles/tokens.css", "./styles/preview.css"]` (package.json).
   Extension-contributed styles load from the install dir and are additive with user `markdown.styles`, so there is no jsdelivr, no purge, no `?v=` bump, and no workspace-folder restriction.
   Edit → rebuild/reinstall the extension (or Reload Window when running from source) → reopen preview.
-- **Print:** `md-print.py` (dotfiles) passes `tokens.css` then `print.css` as two `--css` flags, read from this directory (override with `MD_CSS_DIR`).
+- **Print:** `~/dotfiles/capabilities/commands/laptop/md-print` passes `tokens.css` then `print.css` as two `--css` flags, read from this directory (override with `MD_CSS_DIR`).
 
 ## Verifying changes (`render.py`)
 
