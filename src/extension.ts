@@ -20,7 +20,7 @@ import {
 } from "./providers";
 import { registerCommands } from "./commands";
 import { computeRenameEdits } from "./renameWikilinks";
-import { wikilinkPlugin, calloutPlugin } from "./markdownItPlugin";
+import { wikilinkPlugin, calloutPlugin, relativeLinkHref } from "./markdownItPlugin";
 
 let globalIndex: WorkspaceIndex | undefined;
 
@@ -182,11 +182,12 @@ export async function activate(ctx: vscode.ExtensionContext) {
     extendMarkdownIt(md: MarkdownIt) {
       md.use(calloutPlugin);
       return md.use(wikilinkPlugin, {
-        resolve: (target: string) => {
+        resolve: (target: string, env?: Record<string, unknown>) => {
           if (!globalIndex) return undefined;
           const abs = globalIndex.resolve(target);
           if (!abs) return undefined;
-          // For VSCode preview, return a vscode:// URL via Uri to ensure proper resolution
+          const doc = env?.currentDocument as vscode.Uri | undefined;
+          if (doc?.scheme === "file") return relativeLinkHref(doc.fsPath, abs);
           return vscode.Uri.file(abs).toString();
         },
       });

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import MarkdownIt from "markdown-it";
-import { wikilinkPlugin } from "../../src/markdownItPlugin";
+import { wikilinkPlugin, relativeLinkHref } from "../../src/markdownItPlugin";
 
 function makeMd(resolve: (target: string) => string | undefined) {
   const md = new MarkdownIt({ html: false, linkify: false });
@@ -67,5 +67,22 @@ describe("wikilinkPlugin", () => {
     const md = makeMd(() => "vscode-resource:/vault/Note.md");
     const html = md.render("![[Note]]");
     expect(html).toMatch(/wikilink-embed/);
+  });
+});
+
+describe("preview link hrefs", () => {
+  it("passes the render env to the resolver", () => {
+    const md = new MarkdownIt();
+    md.use(wikilinkPlugin, {
+      resolve: (_t: string, env?: Record<string, unknown>) => String(env?.currentDocument),
+    });
+    expect(md.render("[[Note]]", { currentDocument: "doc-uri" })).toContain('href="doc-uri"');
+  });
+
+  it("builds a scheme-less, encoded href relative to the source note", () => {
+    expect(
+      relativeLinkHref("/vault/Day/Scratchpad Practice.md", "/vault/Day/Planning/Cal Newport.md"),
+    ).toBe("Planning/Cal%20Newport.md");
+    expect(relativeLinkHref("/vault/a/x.md", "/vault/b/y.md")).toBe("../b/y.md");
   });
 });

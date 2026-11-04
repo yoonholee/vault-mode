@@ -5,6 +5,7 @@
 // inside text tokens; fenced/inline-code tokens have a different type and are
 // not transformed.
 
+import * as path from "node:path";
 import type MarkdownIt from "markdown-it";
 import { parseWikilinkInner } from "./wikilinkParser";
 
@@ -20,9 +21,23 @@ export interface WikilinkPluginOptions {
   /**
    * Given a wikilink target stem (or path/Note), return a URL string usable
    * as an href. Return undefined if the link cannot be resolved; the plugin
-   * will then render a missing-link span.
+   * will then render a missing-link span. `env` is the markdown-it render env;
+   * VS Code's preview puts the rendered document's Uri at `env.currentDocument`.
    */
-  resolve: (target: string) => string | undefined;
+  resolve: (target: string, env?: Record<string, unknown>) => string | undefined;
+}
+
+/**
+ * Href for a link from one file to another, relative to the source file's
+ * folder, with each path segment URI-encoded. The built-in preview only follows
+ * scheme-less hrefs (it opens them in the editor); a `file://` href is ignored.
+ */
+export function relativeLinkHref(fromFile: string, toFile: string): string {
+  return path
+    .relative(path.dirname(fromFile), toFile)
+    .split(path.sep)
+    .map(encodeURIComponent)
+    .join("/");
 }
 
 const escapeHtml = (s: string) =>
@@ -31,7 +46,7 @@ const escapeHtml = (s: string) =>
 export function wikilinkPlugin(md: MarkdownIt, options: WikilinkPluginOptions): void {
   md.inline.ruler.after("emphasis", "wikilink", wikilinkRule);
 
-  md.renderer.rules.wikilink = (tokens, idx) => {
+  md.renderer.rules.wikilink = (tokens, idx, _options, env) => {
     const t = tokens[idx];
     const { target, alias, anchor, embed } = t.meta as {
       target: string;
@@ -39,7 +54,7 @@ export function wikilinkPlugin(md: MarkdownIt, options: WikilinkPluginOptions): 
       anchor?: string;
       embed: boolean;
     };
-    const href = options.resolve(target);
+    const href = options.resolve(target, env);
     const displayText = alias ?? target;
     if (!href) {
       const cls = embed ? "wikilink-embed wikilink-missing" : "wikilink wikilink-missing";
