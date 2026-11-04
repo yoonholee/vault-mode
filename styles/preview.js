@@ -12,7 +12,9 @@ document.addEventListener(
     target.classList.remove("vault-flash");
     void target.offsetWidth; // restart the animation on repeat clicks
     target.classList.add("vault-flash");
-    target.addEventListener("animationend", () => target.classList.remove("vault-flash"), { once: true });
+    target.addEventListener("animationend", () => target.classList.remove("vault-flash"), {
+      once: true,
+    });
   },
   true,
 );
