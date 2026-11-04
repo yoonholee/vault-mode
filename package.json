@@ -109,6 +109,7 @@
       }
     },
     "markdown.previewStyles": ["./styles/tokens.css", "./styles/preview.css"],
+    "markdown.previewScripts": ["./styles/preview.js"],
     "grammars": [
       {
         "scopeName": "markdown.wikilink.injection",

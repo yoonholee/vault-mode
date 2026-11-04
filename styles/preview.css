@@ -206,14 +206,14 @@ pre.frontmatter,
   display: none !important;
 }
 
-/* In-page jumps (footnote [^n] and its ↩︎ backlink, heading anchors): flash the
-   landing spot so the eye finds it. The preview leaves #links to the browser,
-   so the URL hash moves and :target matches the element jumped to. */
-:target {
-  animation: vault-target-flash 1.6s ease-out;
+/* In-page jumps (footnote [^n] and its backlink, heading anchors): flash the
+   landing spot so the eye finds it. preview.js adds .vault-flash on click,
+   because the webview host cancels #-navigation, so :target never matches. */
+.vault-flash {
+  animation: vault-flash 1.6s ease-out;
   border-radius: 3px;
 }
-@keyframes vault-target-flash {
+@keyframes vault-flash {
   0%,
   30% {
     background-color: #fff1a8;
@@ -222,11 +222,5 @@ pre.frontmatter,
   100% {
     background-color: transparent;
     box-shadow: 0 0 0 3px transparent;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  :target {
-    animation: none;
-    background-color: #fff1a8;
   }
 }
