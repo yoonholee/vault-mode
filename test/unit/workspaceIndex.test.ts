@@ -133,6 +133,37 @@ describe("WorkspaceIndex", () => {
     await idx.buildAll([]);
     expect(idx.allStems().sort()).toEqual(["a", "bar"]);
   });
+
+  it("indexes aliases and headings for completion", async () => {
+    fs.files.set(
+      "/vault/Research/Canonical Note.md",
+      "---\naliases:\n  - Alternate Name\n---\n# Canonical Note\n## Main Result\n",
+    );
+    await idx.buildAll([]);
+
+    expect(idx.noteForTarget("Canonical Note")).toEqual({
+      relPath: "Research/Canonical Note.md",
+      stem: "Canonical Note",
+      aliases: ["Alternate Name"],
+      headings: [
+        { text: "Canonical Note", level: 1, line: 4 },
+        { text: "Main Result", level: 2, line: 5 },
+      ],
+    });
+    expect(idx.allNotes()).toHaveLength(1);
+  });
+
+  it("updates and removes completion metadata incrementally", async () => {
+    fs.files.set("/vault/Note.md", "# Old Heading\n");
+    await idx.buildAll([]);
+
+    fs.files.set("/vault/Note.md", "# New Heading\n");
+    await idx.updateFile("/vault/Note.md");
+    expect(idx.noteForTarget("Note")?.headings[0].text).toBe("New Heading");
+
+    idx.removeFile("/vault/Note.md");
+    expect(idx.allNotes()).toEqual([]);
+  });
 });
 
 describe("sourcesLinkingToStem", () => {

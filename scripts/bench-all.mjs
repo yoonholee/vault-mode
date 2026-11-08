@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Bench all hot paths against a real vault: listFiles, buildAll (I/O+parse),
-// parse-only (CPU), resolve, backlinks, allStems. R runs each, mean +/- sigma.
+// parse-only (CPU), resolve, backlinks, completion. R runs each, mean +/- sigma.
 // Usage: node scripts/bench-all.mjs [vaultPath] [runs]
 
 import { readFileSync } from "node:fs";
@@ -26,6 +26,12 @@ await build({
   logLevel: "silent",
 });
 const { WorkspaceIndex } = await import(tmp);
+const completionTmp = path.join(tmpdir(), `vault-mode-bench-completion-${Date.now()}.cjs`);
+await build({
+  entryPoints: [path.join(__dirname, "..", "src", "completion.ts")],
+  bundle: true, format: "cjs", platform: "node", outfile: completionTmp, logLevel: "silent",
+});
+const { rankNoteCompletions } = await import(completionTmp);
 const parserTmp = path.join(tmpdir(), `vault-mode-bench-parser-${Date.now()}.cjs`);
 await build({
   entryPoints: [path.join(__dirname, "..", "src", "wikilinkParser.ts")],
@@ -94,7 +100,17 @@ await bench("backlinks_x2000", () => { for (const s of sample) idx.backlinksFor(
 // 6. allStems (completion path)
 await bench("allStems", () => { idx.allStems(); });
 
-// 7. updateFile (watcher hot path) on the 20 largest files
+// 7. ranked completion x100, mixing title prefixes and abbreviation-style fuzzy queries
+const notes = idx.allNotes();
+const completionQueries = Array.from({ length: 100 }, (_, i) => {
+  const stem = notes[(i * 2654435761) % notes.length].stem;
+  return i % 2 === 0 ? stem.slice(0, 5) : stem.split(/\s+/).map((word) => word[0] ?? "").join("");
+});
+await bench("completion_x100", () => {
+  for (const query of completionQueries) rankNoteCompletions(notes, query, notes[0].relPath);
+});
+
+// 8. updateFile (watcher hot path) on the 20 largest files
 const bySize = files.map((f, i) => [f, contents[i].length]).sort((a, b) => b[1] - a[1]).slice(0, 20).map(([f]) => f);
 await bench("updateFile_x20_largest", async () => { for (const f of bySize) await idx.updateFile(f); });
 

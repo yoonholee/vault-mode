@@ -89,6 +89,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
       mdSelector,
       new CompletionProvider(index, perfLog),
       "[",
+      "#",
     ),
   );
 

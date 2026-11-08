@@ -8,6 +8,7 @@ import type { WorkspaceIndex } from "./workspaceIndex";
 import type { VsClient } from "./vsClient";
 import { parseWikilinkInner } from "./wikilinkParser";
 import type { PerfLogger } from "./perfLogger";
+import { completionContext, rankHeadingCompletions, rankNoteCompletions } from "./completion";
 
 const WIKILINK_AT_POS = /(!?\[\[)([^[\]]+?)\]\]/g;
 
@@ -175,31 +176,61 @@ export class CompletionProvider implements vscode.CompletionItemProvider {
   ): vscode.ProviderResult<vscode.CompletionList> {
     const t0 = performance.now();
     let itemsCount = 0;
-    let stemsCount = 0;
+    let notesCount = 0;
+    let mode: "note" | "heading" | undefined;
     try {
       const line = doc.lineAt(pos.line).text;
       const before = line.slice(0, pos.character);
-      const m = /\[\[([^[\]]*)$/.exec(before);
-      if (!m) return undefined;
-      const prefix = m[1].toLowerCase();
-      const stems = this.index.allStems();
-      stemsCount = stems.length;
-      const items = stems
-        .filter((s) => s.includes(prefix))
-        .slice(0, 100)
-        .map((stem) => {
-          const candidates = this.index.resolve(stem);
-          const item = new vscode.CompletionItem(stem, vscode.CompletionItemKind.File);
-          if (candidates) item.detail = path.relative(path.dirname(doc.uri.fsPath), candidates);
-          item.insertText = stem;
+      const context = completionContext(before);
+      if (!context) return undefined;
+      mode = context.kind;
+      const range = new vscode.Range(new vscode.Position(pos.line, context.replaceStart), pos);
+      const notes = this.index.allNotes();
+      notesCount = notes.length;
+
+      let items: vscode.CompletionItem[];
+      if (context.kind === "heading") {
+        const note = this.index.noteForTarget(context.target);
+        if (!note) return undefined;
+        items = rankHeadingCompletions(note, context.query).map((candidate, rank) => {
+          const item = new vscode.CompletionItem(
+            {
+              label: candidate.label,
+              description: `H${candidate.level}`,
+            },
+            vscode.CompletionItemKind.Reference,
+          );
+          item.detail = note.relPath;
+          item.insertText = candidate.insertText;
+          item.range = range;
+          item.sortText = rank.toString().padStart(4, "0");
           return item;
         });
+      } else {
+        const currentRelPath = this.index.relativePath(doc.uri.fsPath);
+        items = rankNoteCompletions(notes, context.query, currentRelPath).map((candidate, rank) => {
+          const item = new vscode.CompletionItem(
+            {
+              label: candidate.label,
+              description: candidate.description,
+            },
+            vscode.CompletionItemKind.File,
+          );
+          if (candidate.matchedAlias) item.detail = `Alias: ${candidate.matchedAlias}`;
+          item.insertText = candidate.insertText;
+          item.filterText = candidate.filterText;
+          item.range = range;
+          item.sortText = rank.toString().padStart(4, "0");
+          return item;
+        });
+      }
       itemsCount = items.length;
       return new vscode.CompletionList(items, true);
     } finally {
       this.perf?.log("provider.completion", performance.now() - t0, {
         items: itemsCount,
-        stems: stemsCount,
+        notes: notesCount,
+        mode,
       });
     }
   }

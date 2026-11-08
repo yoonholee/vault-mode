@@ -33,6 +33,31 @@ exports.run = async function run() {
   );
   assert.ok(defs[0].uri.fsPath.endsWith("Beta.md"), `definition points at ${defs[0].uri.fsPath}`);
 
+  // Note completion: aliases match but insert the canonical target.
+  const completionUri = vscode.Uri.file(path.join(root, "Completion.md"));
+  const completionDoc = await vscode.workspace.openTextDocument(completionUri);
+  const noteCompletions = await vscode.commands.executeCommand(
+    "vscode.executeCompletionItemProvider",
+    completionUri,
+    new vscode.Position(0, completionDoc.lineAt(0).text.length),
+  );
+  const betaCompletion = noteCompletions.items.find((item) => labelText(item.label) === "Beta");
+  assert.ok(betaCompletion, "alias query did not return Beta");
+  assert.equal(betaCompletion.insertText, "Beta", "alias completion did not insert canonical stem");
+
+  // Heading completion: `#` switches from notes to headings in the resolved target.
+  const headingUri = vscode.Uri.file(path.join(root, "Heading.md"));
+  const headingDoc = await vscode.workspace.openTextDocument(headingUri);
+  const headingCompletions = await vscode.commands.executeCommand(
+    "vscode.executeCompletionItemProvider",
+    headingUri,
+    new vscode.Position(0, headingDoc.lineAt(0).text.length),
+  );
+  assert.ok(
+    headingCompletions.items.some((item) => labelText(item.label) === "Detailed Result"),
+    "heading query did not return Detailed Result",
+  );
+
   // Rename propagation: Beta -> Gamma rewrites Alpha.md.
   // Rename via WorkspaceEdit: onDidRenameFiles fires for explorer/applyEdit
   // renames, not workspace.fs.rename (fs-level ops are documented as excluded).
@@ -50,3 +75,7 @@ exports.run = async function run() {
 
   console.log("integration suite: all assertions passed");
 };
+
+function labelText(label) {
+  return typeof label === "string" ? label : label.label;
+}

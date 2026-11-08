@@ -7,6 +7,7 @@
 import { Resolver } from "./resolver";
 import { BacklinksIndex, type OutgoingLink, type Backlink } from "./backlinksIndex";
 import { parseWikilinks } from "./wikilinkParser";
+import { parseNoteMetadata, type NoteMetadata } from "./noteMetadata";
 
 export interface FileSystem {
   /** Returns ABSOLUTE paths to .md files under `root`, honoring ignore globs. */
@@ -34,6 +35,7 @@ export interface UpdateResult {
 export class WorkspaceIndex {
   readonly resolver = new Resolver();
   readonly backlinks = new BacklinksIndex();
+  private readonly notes = new Map<string, NoteMetadata>();
 
   constructor(
     private readonly root: string,
@@ -47,9 +49,12 @@ export class WorkspaceIndex {
     const listMs = performance.now() - listT0;
     this.resolver.clear();
     this.backlinks.clear();
+    this.notes.clear();
     for (const abs of files) {
       // Always add to resolver (stem map). Parsing may fail; that's OK.
-      this.resolver.add(this.toRel(abs));
+      const rel = this.toRel(abs);
+      this.resolver.add(rel);
+      this.notes.set(rel, parseNoteMetadata(rel));
     }
     // Read+parse with bounded concurrency: reads are I/O-bound and serial
     // awaiting was the dominant activation cost (see scripts/bench-all.mjs).
@@ -64,6 +69,8 @@ export class WorkspaceIndex {
         const abs = files[next++];
         try {
           const text = await this.fs.readFile(abs);
+          const rel = this.toRel(abs);
+          this.notes.set(rel, parseNoteMetadata(rel, text));
           const links = parseWikilinks(text);
           bytes += text.length;
           linksCount += links.length;
@@ -94,10 +101,13 @@ export class WorkspaceIndex {
   /** Re-parse a single file and update resolver + backlinks. */
   async updateFile(absPath: string): Promise<UpdateResult> {
     const t0 = performance.now();
+    const rel = this.toRel(absPath);
     // Update resolver (in case the file is new)
-    this.resolver.add(this.toRel(absPath));
+    this.resolver.add(rel);
+    this.notes.set(rel, parseNoteMetadata(rel));
     try {
       const text = await this.fs.readFile(absPath);
+      this.notes.set(rel, parseNoteMetadata(rel, text));
       const links = parseWikilinks(text);
       const outgoing: OutgoingLink[] = links.map((l) => ({
         target: l.target,
@@ -118,7 +128,9 @@ export class WorkspaceIndex {
   }
 
   removeFile(absPath: string): void {
-    this.resolver.remove(this.toRel(absPath));
+    const rel = this.toRel(absPath);
+    this.resolver.remove(rel);
+    this.notes.delete(rel);
     this.backlinks.removeSource(absPath);
   }
 
@@ -134,6 +146,19 @@ export class WorkspaceIndex {
 
   allStems(): string[] {
     return this.resolver.allStems();
+  }
+
+  allNotes(): NoteMetadata[] {
+    return [...this.notes.values()];
+  }
+
+  noteForTarget(target: string): NoteMetadata | undefined {
+    const rel = this.resolver.resolve(target);
+    return rel ? this.notes.get(rel) : undefined;
+  }
+
+  relativePath(absPath: string): string {
+    return this.toRel(absPath);
   }
 
   /** Absolute paths of files with at least one outgoing link whose stem matches (case-insensitive). */
