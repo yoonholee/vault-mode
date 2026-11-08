@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Wikilink completion now fuzzy-matches canonical titles and frontmatter aliases while preserving the canonical target on insertion.
+- Completion favors notes near the current file and disambiguates duplicate titles with relative paths and path-qualified targets.
+- Typing `#` inside a wikilink completes headings from the target note.
+
 ## 0.4.0
 
 - Removed `Vault: Regenerate Copilot Instructions` and its generator/test code.

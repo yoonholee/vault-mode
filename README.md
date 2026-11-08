@@ -11,7 +11,7 @@ In my experience, a vault like this built up over months of personal writing, wh
 ## Features
 
 - **Wikilink preview rendering.** `[[Note]]`, `[[Note|alias]]`, `[[Note#heading]]`, `![[Note]]` become clickable links in the Markdown preview. Code fences and inline code spans are respected.
-- **Wikilink intelligence.** Ctrl/Cmd-click a `[[Wikilink]]` to jump. Hover for a content preview. Type `[[` for completion. "Find all references" lists backlinks.
+- **Wikilink intelligence.** Ctrl/Cmd-click a `[[Wikilink]]` to jump. Hover for a content preview. Type `[[` for fuzzy, alias-aware completion ranked toward nearby notes; duplicate titles show and insert path-qualified targets. Type `#` inside a wikilink to complete headings. "Find all references" lists backlinks.
 - **Syntax highlighting** for wikilinks in the editor (distinct token scope; styled by your color theme).
 - **Callouts in the preview.** `> [!note] Title` renders as a bold-titled blockquote instead of literal `[!note]` text (same treatment `md-print` applies in PDFs).
 - **Styled preview.** The built-in Markdown preview gets an opinionated light style: serif headings, restrained palette, tight vertical rhythm, hidden YAML-frontmatter table. Ships as `markdown.previewStyles`, so it works in any folder with zero settings.
