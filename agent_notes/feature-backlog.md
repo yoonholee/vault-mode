@@ -20,8 +20,6 @@ Ideas, not commitments. Favor small, local features that keep Vault Mode persona
 - Backlink panel in a Webview or native TreeView.
 - Hover: show target path, backlink count, and ambiguous-candidate warning.
 - Definition: support heading anchors by jumping to heading line.
-- Completion: fuzzy-match stems and rank local folder matches above global matches.
-- Completion: include heading anchors after typing `#`.
 - Agent handoff command: copy current note plus top related notes.
 - Agent handoff command: write a temporary context bundle.
 - Related-notes panel backed by `vs`.
@@ -42,7 +40,6 @@ Ideas, not commitments. Favor small, local features that keep Vault Mode persona
 - Command: copy markdown link for current note.
 - Command: insert backlink list into current note.
 - References: include aliases/anchors in preview text.
-- Completion: include aliases harvested from frontmatter.
 - Rename: warn before rewriting many files.
 - Rename: skip generated/export folders even if indexed.
 - Rename: preserve interior whitespace if possible.
