@@ -69,6 +69,32 @@ export class Resolver {
     return [...(this.byStem.get(normalized.toLowerCase()) ?? [])];
   }
 
+  /** Independent copy that can be mutated without affecting this resolver. */
+  clone(): Resolver {
+    const copy = new Resolver();
+    for (const [k, v] of this.byStem) copy.byStem.set(k, [...v]);
+    return copy;
+  }
+
+  /**
+   * Shortest wikilink target for `relPath` that resolves to it unambiguously:
+   * the bare stem when no other file shares it, otherwise the shortest
+   * path-qualified suffix that matches only this file.
+   */
+  shortestTarget(relPath: string): string {
+    const noExt = relPath.replace(/\.md$/i, "");
+    const segments = noExt.split("/");
+    const stem = segments[segments.length - 1];
+    const others = this.candidates(stem).filter((c) => c !== relPath);
+    for (let n = 1; n <= segments.length; n++) {
+      const target = segments.slice(segments.length - n).join("/");
+      const wanted = target + ".md";
+      const clash = others.some((c) => c === wanted || c.endsWith("/" + wanted));
+      if (!clash) return target;
+    }
+    return noExt;
+  }
+
   /** All known stems (lowercased), for completion. */
   allStems(): string[] {
     return [...this.byStem.keys()];

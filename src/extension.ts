@@ -19,7 +19,7 @@ import {
   ReferenceProvider,
 } from "./providers";
 import { registerCommands } from "./commands";
-import { computeRenameEdits } from "./renameWikilinks";
+import { createRenamer } from "./renameWikilinks";
 import { wikilinkPlugin, calloutPlugin, relativeLinkHref } from "./markdownItPlugin";
 
 let globalIndex: WorkspaceIndex | undefined;
@@ -134,34 +134,51 @@ export async function activate(ctx: vscode.ExtensionContext) {
   watcher.onDidChange(update);
   watcher.onDidDelete(remove);
 
-  // Rename propagation: when a note's stem changes, rewrite wikilinks that point at it
+  // Rename propagation: rewrite wikilinks that resolved to a renamed or moved note
   ctx.subscriptions.push(
     vscode.workspace.onDidRenameFiles(async (e) => {
       const cfgNow = vscode.workspace.getConfiguration("vaultMode");
       if (!(cfgNow.get<boolean>("updateLinksOnRename") ?? true)) return;
+      const renames = new Map<string, string>();
       for (const { oldUri, newUri } of e.files) {
-        if (!oldUri.fsPath.endsWith(".md") || !newUri.fsPath.endsWith(".md")) continue;
-        const oldStem = path.basename(oldUri.fsPath, ".md");
-        const newStem = path.basename(newUri.fsPath, ".md");
-        if (oldStem === newStem) continue;
-        const sources = index.sourcesLinkingToStem(oldStem);
-        if (sources.length === 0) continue;
-        const edit = new vscode.WorkspaceEdit();
-        let touched = 0;
-        for (const src of sources) {
-          const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(src));
-          const updated = computeRenameEdits(doc.getText(), oldStem, newStem);
-          if (updated === null) continue;
-          const full = new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length));
-          edit.replace(doc.uri, full, updated);
-          touched++;
+        const oldRel = path.relative(vaultRoot, oldUri.fsPath);
+        const newRel = path.relative(vaultRoot, newUri.fsPath);
+        if (oldUri.fsPath.endsWith(".md") && newUri.fsPath.endsWith(".md")) {
+          renames.set(oldRel, newRel);
+          continue;
         }
-        if (touched > 0) {
-          await vscode.workspace.applyEdit(edit);
-          output.appendLine(
-            `rename ${oldStem} -> ${newStem}: updated wikilinks in ${touched} files`,
-          );
+        // Folder move: pair each note under the new folder with its old path.
+        const moved = await vscode.workspace.findFiles(
+          new vscode.RelativePattern(newUri, "**/*.md"),
+        );
+        for (const f of moved) {
+          const rel = path.relative(vaultRoot, f.fsPath);
+          renames.set(path.join(oldRel, path.relative(newRel, rel)), rel);
         }
+      }
+      if (renames.size === 0) return;
+
+      const rewrite = createRenamer(index.resolver, renames);
+      const stems = new Set([...renames.keys()].map((p) => path.basename(p, ".md")));
+      const movedAbs = new Map(
+        [...renames].map(([from, to]) => [path.join(vaultRoot, from), path.join(vaultRoot, to)]),
+      );
+      const sources = new Set(
+        [...stems].flatMap((s) => index.sourcesLinkingToStem(s)).map((s) => movedAbs.get(s) ?? s),
+      );
+      const edit = new vscode.WorkspaceEdit();
+      let touched = 0;
+      for (const src of sources) {
+        const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(src));
+        const updated = rewrite(doc.getText());
+        if (updated === null) continue;
+        const full = new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length));
+        edit.replace(doc.uri, full, updated);
+        touched++;
+      }
+      if (touched > 0) {
+        await vscode.workspace.applyEdit(edit);
+        output.appendLine(`rename: updated wikilinks in ${touched} files`);
       }
     }),
   );
