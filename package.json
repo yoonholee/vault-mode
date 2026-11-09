@@ -2,7 +2,7 @@
   "name": "vault-mode",
   "displayName": "Vault Mode",
   "description": "Wikilinks, backlinks, daily notes, a styled Markdown preview, and optional semantic search for markdown vaults. For VS Code, Cursor, and compatible editors.",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "icon": "icon.png",
   "license": "MIT",
   "publisher": "yoonholeee",
