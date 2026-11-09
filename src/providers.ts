@@ -6,48 +6,28 @@ import * as path from "node:path";
 import * as fs from "node:fs/promises";
 import type { WorkspaceIndex } from "./workspaceIndex";
 import type { VsClient } from "./vsClient";
-import { parseWikilinkInner } from "./wikilinkParser";
+import { parseWikilinks } from "./wikilinkParser";
 import type { PerfLogger } from "./perfLogger";
 import { completionContext, rankHeadingCompletions, rankNoteCompletions } from "./completion";
-
-const WIKILINK_AT_POS = /(!?\[\[)([^[\]]+?)\]\]/g;
 
 interface WikilinkAtCursor {
   range: vscode.Range;
   target: string;
-  alias?: string;
-  anchor?: string;
-  embed: boolean;
 }
 
-/** Find the wikilink whose inner content the cursor sits on. */
-export function wikilinkAt(
-  doc: vscode.TextDocument,
-  pos: vscode.Position,
-): WikilinkAtCursor | undefined {
-  const line = doc.lineAt(pos.line).text;
-  WIKILINK_AT_POS.lastIndex = 0;
-  let m: RegExpExecArray | null;
-  while ((m = WIKILINK_AT_POS.exec(line)) !== null) {
-    const start = m.index;
-    const end = m.index + m[0].length;
-    if (pos.character >= start && pos.character <= end) {
-      const embed = m[1].startsWith("!");
-      const parts = parseWikilinkInner(m[2]);
-      if (!parts) continue;
-      return {
-        range: new vscode.Range(
-          new vscode.Position(pos.line, start),
-          new vscode.Position(pos.line, end),
-        ),
-        target: parts.target,
-        alias: parts.alias,
-        anchor: parts.anchor,
-        embed,
-      };
-    }
-  }
-  return undefined;
+/** Find the wikilink on the cursor's line that contains the cursor. */
+function wikilinkAt(doc: vscode.TextDocument, pos: vscode.Position): WikilinkAtCursor | undefined {
+  const link = parseWikilinks(doc.lineAt(pos.line).text).find(
+    (l) => pos.character >= l.range.start && pos.character <= l.range.end,
+  );
+  if (!link) return undefined;
+  return {
+    range: new vscode.Range(
+      new vscode.Position(pos.line, link.range.start),
+      new vscode.Position(pos.line, link.range.end),
+    ),
+    target: link.target,
+  };
 }
 
 export class DefinitionProvider implements vscode.DefinitionProvider {

@@ -5,7 +5,7 @@
 // + watcher lives in src/services/vscodeFs.ts.
 
 import { Resolver } from "./resolver";
-import { BacklinksIndex, type OutgoingLink, type Backlink } from "./backlinksIndex";
+import { BacklinksIndex, type Backlink } from "./backlinksIndex";
 import { parseWikilinks } from "./wikilinkParser";
 import { parseNoteMetadata, type NoteMetadata } from "./noteMetadata";
 
@@ -71,15 +71,9 @@ export class WorkspaceIndex {
           const text = await this.fs.readFile(abs);
           const rel = this.toRel(abs);
           this.notes.set(rel, parseNoteMetadata(rel, text));
-          const links = parseWikilinks(text);
+          const links = this.recordLinks(abs, text);
           bytes += text.length;
-          linksCount += links.length;
-          const outgoing: OutgoingLink[] = links.map((l) => ({
-            target: l.target,
-            line: l.line,
-            col: l.col,
-          }));
-          this.backlinks.recordOutgoing(abs, outgoing);
+          linksCount += links;
         } catch {
           readErrors++;
           // Skip unreadable files; resolver still has the stem.
@@ -108,17 +102,11 @@ export class WorkspaceIndex {
     try {
       const text = await this.fs.readFile(absPath);
       this.notes.set(rel, parseNoteMetadata(rel, text));
-      const links = parseWikilinks(text);
-      const outgoing: OutgoingLink[] = links.map((l) => ({
-        target: l.target,
-        line: l.line,
-        col: l.col,
-      }));
-      this.backlinks.recordOutgoing(absPath, outgoing);
+      const links = this.recordLinks(absPath, text);
       return {
         ok: true,
         bytes: text.length,
-        links: links.length,
+        links,
         durationMs: performance.now() - t0,
       };
     } catch {
@@ -164,6 +152,16 @@ export class WorkspaceIndex {
   /** Absolute paths of files with at least one outgoing link whose stem matches (case-insensitive). */
   sourcesLinkingToStem(stem: string): string[] {
     return [...new Set(this.backlinks.backlinks(stem).map((b) => b.source))];
+  }
+
+  /** Record `text`'s outgoing wikilinks for `absPath`; returns how many there are. */
+  private recordLinks(absPath: string, text: string): number {
+    const links = parseWikilinks(text);
+    this.backlinks.recordOutgoing(
+      absPath,
+      links.map(({ target, line, col }) => ({ target, line, col })),
+    );
+    return links.length;
   }
 
   private toRel(abs: string): string {
