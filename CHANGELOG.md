@@ -5,6 +5,7 @@
 - Wikilink completion now fuzzy-matches canonical titles and frontmatter aliases while preserving the canonical target on insertion.
 - Completion favors notes near the current file and disambiguates duplicate titles with relative paths and path-qualified targets.
 - Typing `#` inside a wikilink completes headings from the target note.
+- Rename and move now rewrite only wikilinks that resolved to the renamed file, so same-named notes in other folders and path-qualified links to them are left alone; rewritten targets use the shortest form that stays unique.
 
 ## 0.4.0
 
