@@ -40,6 +40,7 @@
       { "command": "vaultMode.semanticSearch", "title": "Vault: Semantic Search", "category": "Vault Mode" },
       { "command": "vaultMode.insertWikilink", "title": "Vault: Insert Wikilink", "category": "Vault Mode" },
       { "command": "vaultMode.relatedNotes", "title": "Vault: Show Related Notes", "category": "Vault Mode" },
+      { "command": "vaultMode.showAmbiguousLinks", "title": "Vault: Show Ambiguous Links", "category": "Vault Mode" },
       { "command": "vaultMode.openDailyNote", "title": "Vault: Open Today's Daily Note", "category": "Vault Mode" },
       { "command": "vaultMode.openRandomNote", "title": "Vault: Open Random Note", "category": "Vault Mode" },
       { "command": "vaultMode.rebuildIndex", "title": "Vault: Rebuild Workspace Index", "category": "Vault Mode" },

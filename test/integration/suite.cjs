@@ -16,6 +16,7 @@ exports.run = async function run() {
     "vaultMode.openDailyNote",
     "vaultMode.previewToSide",
     "vaultMode.rebuildIndex",
+    "vaultMode.showAmbiguousLinks",
   ]) {
     assert.ok(commands.includes(cmd), `command missing: ${cmd}`);
   }

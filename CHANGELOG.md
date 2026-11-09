@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added `Vault: Show Ambiguous Links`: lists wikilinks in the active note whose target matches several notes and rewrites the chosen one to its shortest unique target; with no editor open it lists every shared note name in the vault. Hovering an ambiguous link now shows the other matches.
 - Wikilink completion now fuzzy-matches canonical titles and frontmatter aliases while preserving the canonical target on insertion.
 - Completion favors notes near the current file and disambiguates duplicate titles with relative paths and path-qualified targets.
 - Typing `#` inside a wikilink completes headings from the target note.

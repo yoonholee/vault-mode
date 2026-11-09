@@ -37,30 +37,30 @@ export class Resolver {
    * Returns undefined if no match.
    */
   resolve(target: string): string | undefined {
+    const matches = this.matches(target);
+    if (matches.length <= 1 || target.includes("/")) return matches[0];
+
+    // Ambiguous bare stem: prefer shortest path (fewest slashes), then alphabetical
+    return matches.sort((a, b) => depthOf(a) - depthOf(b) || a.localeCompare(b))[0];
+  }
+
+  /**
+   * Every file a wikilink target matches: all files sharing the stem for a
+   * bare target, those whose path ends with the target for a qualified one.
+   */
+  matches(target: string): string[] {
     const normalized = target.replace(/\.md$/i, "");
-    const segments = normalized.split("/");
-    const stem = segments[segments.length - 1];
-    if (!stem) return undefined;
-
+    const stem = normalized.slice(normalized.lastIndexOf("/") + 1);
+    if (!stem) return [];
     const candidates = this.candidates(stem);
-    if (candidates.length === 0) return undefined;
+    if (!normalized.includes("/")) return candidates;
+    const wanted = normalized + ".md";
+    return candidates.filter((c) => c === wanted || c.endsWith("/" + wanted));
+  }
 
-    if (segments.length > 1) {
-      // Path-qualified: require the relative path to end with normalized + .md
-      const wanted = normalized + ".md";
-      const exact = candidates.find((c) => c === wanted || c.endsWith("/" + wanted));
-      return exact;
-    }
-
-    if (candidates.length === 1) return candidates[0];
-
-    // Ambiguous stem: prefer shortest path (fewest slashes), then alphabetical
-    return candidates.slice().sort((a, b) => {
-      const da = depthOf(a);
-      const db = depthOf(b);
-      if (da !== db) return da - db;
-      return a.localeCompare(b);
-    })[0];
+  /** Stems (lowercased) shared by more than one file, with their paths. */
+  ambiguousStems(): Map<string, string[]> {
+    return new Map([...this.byStem].filter(([, paths]) => paths.length > 1));
   }
 
   /** All file paths that share this stem (case-insensitive). */
@@ -89,8 +89,7 @@ export class Resolver {
     for (let n = 1; n <= segments.length; n++) {
       const target = segments.slice(segments.length - n).join("/");
       const wanted = target + ".md";
-      const clash = others.some((c) => c === wanted || c.endsWith("/" + wanted));
-      if (!clash) return target;
+      if (!others.some((c) => c === wanted || c.endsWith("/" + wanted))) return target;
     }
     return noExt;
   }

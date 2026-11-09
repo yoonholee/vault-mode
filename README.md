@@ -77,15 +77,16 @@ If the binary is not on PATH at activation, the vs-dependent features disable wi
 
 ## Commands
 
-| Command                    | What                                    |
-| -------------------------- | --------------------------------------- |
-| `vaultMode.semanticSearch` | QuickPick over search results           |
-| `vaultMode.insertWikilink` | Search + insert `[[Stem]]` at cursor    |
-| `vaultMode.relatedNotes`   | Semantic neighbors of the current file  |
-| `vaultMode.openDailyNote`  | Open / create today's daily note        |
-| `vaultMode.openRandomNote` | Open a random vault note                |
-| `vaultMode.previewToSide`  | Open Markdown preview to the side       |
-| `vaultMode.rebuildIndex`   | Rebuild the wikilink index from scratch |
+| Command                        | What                                                                                              |
+| ------------------------------ | ------------------------------------------------------------------------------------------------- |
+| `vaultMode.semanticSearch`     | QuickPick over search results                                                                     |
+| `vaultMode.insertWikilink`     | Search + insert `[[Stem]]` at cursor                                                              |
+| `vaultMode.relatedNotes`       | Semantic neighbors of the current file                                                            |
+| `vaultMode.showAmbiguousLinks` | List wikilinks in this note that match several notes and pin one (vault-wide list with no editor) |
+| `vaultMode.openDailyNote`      | Open / create today's daily note                                                                  |
+| `vaultMode.openRandomNote`     | Open a random vault note                                                                          |
+| `vaultMode.previewToSide`      | Open Markdown preview to the side                                                                 |
+| `vaultMode.rebuildIndex`       | Rebuild the wikilink index from scratch                                                           |
 
 No default keybindings; bind in `keybindings.json` if you want hotkeys.
 

@@ -50,6 +50,13 @@ export function parseWikilinkInner(inner: string): WikilinkParts | undefined {
   return { target, anchor, alias };
 }
 
+/** Source text of `link` with its target replaced; anchor, alias, and embed are kept. */
+export function formatWikilink(link: Wikilink, target: string): string {
+  const anchor = link.anchor !== undefined ? `#${link.anchor}` : "";
+  const alias = link.alias !== undefined ? `|${link.alias}` : "";
+  return `${link.embed ? "!" : ""}[[${target}${anchor}${alias}]]`;
+}
+
 export function parseWikilinks(source: string): Wikilink[] {
   // Fast path: no [[ anywhere means the regex cannot match; skip all allocation.
   if (!source.includes("[[")) return [];

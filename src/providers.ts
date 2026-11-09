@@ -125,6 +125,12 @@ export class HoverProvider implements vscode.HoverProvider {
         md.appendMarkdown(`**\`[[${hit.target}]]\`**: unresolved.\n\n`);
       } else {
         md.appendMarkdown(`**${path.basename(resolvedPath)}**\n\n`);
+        const matches = this.index.resolver.matches(hit.target);
+        if (matches.length > 1) {
+          md.appendMarkdown(
+            `Ambiguous: also matches ${matches.map((m) => `\`${m}\``).join(", ")}\n\n`,
+          );
+        }
         try {
           const text = await fs.readFile(resolvedPath, "utf8");
           const excerpt = firstParagraph(text, 400);

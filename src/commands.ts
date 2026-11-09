@@ -7,6 +7,7 @@ import * as fsSync from "node:fs";
 import type { WorkspaceIndex } from "./workspaceIndex";
 import type { VsClient } from "./vsClient";
 import type { PerfLogger } from "./perfLogger";
+import { findAmbiguousLinks, pinnedLinkText } from "./ambiguousLinks";
 import { dailyNotePath, renderDailyNoteTemplate } from "./dailyNote";
 
 export interface CommandDeps {
@@ -34,6 +35,7 @@ export function registerCommands(deps: CommandDeps): void {
   r("vaultMode.relatedNotes", () => relatedNotes(deps));
   r("vaultMode.openDailyNote", () => openDailyNote(deps));
   r("vaultMode.openRandomNote", () => openRandomNote(deps));
+  r("vaultMode.showAmbiguousLinks", () => showAmbiguousLinks(deps));
   r("vaultMode.previewToSide", () => vscode.commands.executeCommand("markdown.showPreviewToSide"));
   r("vaultMode.rebuildIndex", async () => {
     const cfg = vscode.workspace.getConfiguration("vaultMode");
@@ -169,4 +171,53 @@ async function openRandomNote(deps: CommandDeps): Promise<void> {
   const stem = stems[Math.floor(Math.random() * stems.length)];
   const target = deps.index.resolve(stem);
   if (target) await vscode.window.showTextDocument(vscode.Uri.file(target));
+}
+
+interface AmbiguousPick extends vscode.QuickPickItem {
+  relPath?: string;
+  /** Set when picking should rewrite this link range in the editor. */
+  link?: ReturnType<typeof findAmbiguousLinks>[number]["link"];
+}
+
+async function showAmbiguousLinks(deps: CommandDeps): Promise<void> {
+  const { resolver } = deps.index;
+  const editor = vscode.window.activeTextEditor;
+  const items: AmbiguousPick[] = [];
+  const separator = (label: string): AmbiguousPick => ({
+    label,
+    kind: vscode.QuickPickItemKind.Separator,
+  });
+
+  if (editor) {
+    for (const { link, candidates } of findAmbiguousLinks(editor.document.getText(), resolver)) {
+      items.push(separator(`line ${link.line + 1}: [[${link.target}]]`));
+      for (const relPath of candidates.sort()) items.push({ label: relPath, relPath, link });
+    }
+  } else {
+    for (const [stem, paths] of resolver.ambiguousStems()) {
+      items.push(separator(stem));
+      for (const relPath of paths.sort()) items.push({ label: relPath, relPath });
+    }
+  }
+  if (items.length === 0) {
+    vscode.window.showInformationMessage(
+      editor ? "Vault Mode: no ambiguous links in this note." : "Vault Mode: no ambiguous stems.",
+    );
+    return;
+  }
+
+  const pick = await vscode.window.showQuickPick(items, {
+    placeHolder: editor ? "Pick the note this link should point to" : "Notes sharing a name",
+  });
+  if (!pick?.relPath) return;
+  if (!editor || !pick.link) {
+    await vscode.window.showTextDocument(vscode.Uri.file(path.join(deps.vaultRoot, pick.relPath)));
+    return;
+  }
+  const { link } = pick;
+  const range = new vscode.Range(
+    editor.document.positionAt(link.range.start),
+    editor.document.positionAt(link.range.end),
+  );
+  await editor.edit((eb) => eb.replace(range, pinnedLinkText(link, pick.relPath!, resolver)));
 }

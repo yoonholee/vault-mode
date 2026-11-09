@@ -3,7 +3,7 @@
 // it to a renamed file. The new target is the shortest form that resolves
 // uniquely to that file after the rename, keeping alias/anchor/embed syntax.
 
-import { parseWikilinks } from "./wikilinkParser";
+import { formatWikilink, parseWikilinks } from "./wikilinkParser";
 import type { Resolver } from "./resolver";
 
 /**
@@ -35,9 +35,7 @@ export function createRenamer(
       if (moved === undefined) continue;
 
       const target = after.shortestTarget(moved);
-      const anchor = link.anchor !== undefined ? `#${link.anchor}` : "";
-      const alias = link.alias !== undefined ? `|${link.alias}` : "";
-      const raw = `${link.embed ? "!" : ""}[[${target}${anchor}${alias}]]`;
+      const raw = formatWikilink(link, target);
       if (raw === source.slice(link.range.start, link.range.end)) continue;
 
       out += source.slice(cursor, link.range.start) + raw;
