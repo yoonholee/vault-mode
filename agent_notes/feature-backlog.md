@@ -18,7 +18,7 @@ Ideas, not commitments. Favor small, local features that keep Vault Mode persona
 - Command: show all unresolved wikilinks in workspace.
 - Quick fix: rename unresolved wikilink to nearest matching stem.
 - Backlink panel in a Webview or native TreeView.
-- Hover: show target path, backlink count, and ambiguous-candidate warning.
+- Hover: show target path and backlink count.
 - Definition: support heading anchors by jumping to heading line.
 - Agent handoff command: copy current note plus top related notes.
 - Agent handoff command: write a temporary context bundle.
@@ -31,7 +31,6 @@ Ideas, not commitments. Favor small, local features that keep Vault Mode persona
 
 ## Wikilinks and navigation
 
-- Show all ambiguous targets when a stem collision exists.
 - Command: show all orphan notes (no backlinks).
 - Command: show notes with no outgoing links.
 - Command: show recently changed notes.
